@@ -1,0 +1,1387 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Analisis Karakter - Ruh, Jiwa, Kecerdasan</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+        <script src="https://unpkg.com/@phosphor-icons/web"></script>
+        <style>
+            .btn-transition {
+                transition: all 0.2s ease;
+            }
+            body {
+                background-color: #f3f4f6;
+                font-family: "Inter", sans-serif;
+            }
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+            .no-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        </style>
+    </head>
+    <body class="h-screen flex flex-col items-center justify-center">
+        <!-- Main Container -->
+        <div
+            class="bg-white w-full h-full flex flex-col overflow-hidden relative"
+        >
+            <!-- Header -->
+            <div
+                class="p-6 border-b border-gray-100 flex justify-between items-center bg-white z-10"
+            >
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">
+                        Analisis Karakter Bakat
+                    </h1>
+                    <p class="text-sm text-gray-500">Pemetaan Bakat</p>
+                </div>
+                <div
+                    class="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded"
+                >
+                    <span id="page-indicator">Page 1</span>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="w-full flex-1 min-h-0 relative bg-gray-50/30">
+                <!-- Chart Container (Page 1 & 2 & 3 & 4) -->
+                <div
+                    id="chart-container"
+                    class="absolute inset-0 w-full h-full"
+                ></div>
+            </div>
+
+            <!-- Footer / Navigation -->
+            <div
+                class="p-3 border-t border-gray-200 bg-white flex items-center gap-2 w-full z-20"
+            >
+                <button
+                    id="btn-prev"
+                    onclick="prevPage()"
+                    class="p-2 rounded-lg bg-gray-100 hover:bg-indigo-50 hover:text-indigo-600 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed btn-transition flex-shrink-0"
+                >
+                    <i class="ph-bold ph-caret-left text-lg"></i>
+                </button>
+
+                <div class="relative flex-1 overflow-hidden group">
+                    <div
+                        id="nav-container"
+                        class="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth px-1 py-1"
+                    >
+                        <!-- Buttons injected by JS -->
+                    </div>
+                    <div
+                        class="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white to-transparent pointer-events-none"
+                    ></div>
+                    <div
+                        class="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-white to-transparent pointer-events-none"
+                    ></div>
+                </div>
+
+                <button
+                    id="btn-next"
+                    onclick="nextPage()"
+                    class="p-2 rounded-lg bg-gray-100 hover:bg-indigo-50 hover:text-indigo-600 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed btn-transition flex-shrink-0"
+                >
+                    <i class="ph-bold ph-caret-right text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <script>
+            // ==========================================
+            // 1. DATA PREPARATION
+            // ==========================================
+
+            const palettes = {
+                blue: [
+                    "#E3F2FD",
+                    "#BBDEFB",
+                    "#90CAF9",
+                    "#64B5F6",
+                    "#42A5F5",
+                    "#2196F3",
+                    "#1E88E5",
+                    "#1976D2",
+                    "#1565C0",
+                    "#0D47A1",
+                ],
+                brown: [
+                    "#EFEBE9",
+                    "#D7CCC8",
+                    "#BCAAA4",
+                    "#A1887F",
+                    "#8D6E63",
+                    "#795548",
+                    "#6D4C41",
+                    "#5D4037",
+                    "#4E342E",
+                    "#3E2723",
+                ],
+                red: [
+                    "#ffcdd2",
+                    "#ef9a9a",
+                    "#e57373",
+                    "#ef5350",
+                    "#f44336",
+                    "#e53935",
+                    "#d32f2f",
+                ],
+                yellow: [
+                    "#fff9c4",
+                    "#fff59d",
+                    "#fff176",
+                    "#ffee58",
+                    "#ffeb3b",
+                    "#fdd835",
+                    "#fbc02d",
+                ],
+                green: [
+                    "#c8e6c9",
+                    "#a5d6a7",
+                    "#81c784",
+                    "#66bb6a",
+                    "#4caf50",
+                    "#43a047",
+                    "#388e3c",
+                ],
+            };
+
+            function getColor(type, index) {
+                const palette = palettes[type] || palettes.blue;
+                return palette[index % palette.length];
+            }
+
+            const rawData = [
+                {
+                    name: "Himmah",
+                    nama: "bercita-cita tinggi",
+                    score: 80,
+                    groupId: "karakter",
+                    parents: "Berambisi_Bekerja keras_Karsa_Introvert",
+                },
+                {
+                    name: "Ihsaan",
+                    nama: "perfeksionis",
+                    score: 60,
+                    groupId: "karakter",
+                    parents: "Berambisi_Bekerja keras_Karsa_Introvert",
+                },
+                {
+                    name: "‘izzah",
+                    nama: "harga diri",
+                    score: 80,
+                    groupId: "karakter",
+                    parents: "Berwibawa_Bekerja keras_Karsa_Introvert",
+                },
+                {
+                    name: "Waqaar",
+                    nama: "berwibawa",
+                    score: 100,
+                    groupId: "karakter",
+                    parents: "Berwibawa_Bekerja keras_Karsa_Introvert",
+                },
+                {
+                    name: "‘aziimah",
+                    nama: "bertekad kuat",
+                    score: 90,
+                    groupId: "karakter",
+                    parents: "Giat bekerja_Bekerja keras_Karsa_Introvert",
+                },
+                {
+                    name: "Nasyaath",
+                    nama: "bersemangat",
+                    score: 100,
+                    groupId: "karakter",
+                    parents: "Giat bekerja_Bekerja keras_Karsa_Introvert",
+                },
+                {
+                    name: "Firaasah",
+                    nama: "berfirasat",
+                    score: 80,
+                    groupId: "karakter",
+                    parents:
+                        "Suka berpikir imajinatif_Berpikir_Cipta_Introvert",
+                },
+                {
+                    name: "Nubl",
+                    nama: "cerdik",
+                    score: 60,
+                    groupId: "karakter",
+                    parents:
+                        "Suka berpikir imajinatif_Berpikir_Cipta_Introvert",
+                },
+                {
+                    name: "Husnuzhan",
+                    nama: "berprasangka baik",
+                    score: 90,
+                    groupId: "karakter",
+                    parents: "Suka berpikir positif_Berpikir_Cipta_Introvert",
+                },
+                {
+                    name: "Dzakaa’",
+                    nama: "cerdas",
+                    score: 60,
+                    groupId: "karakter",
+                    parents: "Suka berpikir analitis_Berpikir_Cipta_Introvert",
+                },
+                {
+                    name: "Hikmah",
+                    nama: "ahli hikmah",
+                    score: 60,
+                    groupId: "karakter",
+                    parents: "Suka berpikir analitis_Berpikir_Cipta_Introvert",
+                },
+                {
+                    name: "Shidq",
+                    nama: "jujur",
+                    score: 90,
+                    groupId: "karakter",
+                    parents: "Suka apa adanya_Berperasaan_Rasa_Introvert",
+                },
+                {
+                    name: "‘iffah",
+                    nama: "menjaga diri",
+                    score: 100,
+                    groupId: "karakter",
+                    parents: "Pendiam_Berperasaan_Rasa_Introvert",
+                },
+                {
+                    name: "Shamt",
+                    nama: "pendiam",
+                    score: 80,
+                    groupId: "karakter",
+                    parents: "Pendiam_Berperasaan_Rasa_Introvert",
+                },
+                {
+                    name: "Hayaa’",
+                    nama: "pemalu",
+                    score: 100,
+                    groupId: "karakter",
+                    parents: "Suka merendah_Berperasaan_Rasa_Introvert",
+                },
+                {
+                    name: "Qanaa'ah",
+                    nama: "sederhana",
+                    score: 80,
+                    groupId: "karakter",
+                    parents: "Suka merendah_Berperasaan_Rasa_Introvert",
+                },
+                {
+                    name: "Shabr",
+                    nama: "penyabar",
+                    score: 70,
+                    groupId: "karakter",
+                    parents: "Suka merendah_Berperasaan_Rasa_Introvert",
+                },
+                {
+                    name: "Syajaa’ah",
+                    nama: "pemberani",
+                    score: 100,
+                    groupId: "karakter",
+                    parents: "Suka menguasai_Mempengaruhi_Karsa_Extrovert",
+                },
+                {
+                    name: "Ghairah",
+                    nama: "pencemburu",
+                    score: 90,
+                    groupId: "karakter",
+                    parents: "Suka menguasai_Mempengaruhi_Karsa_Extrovert",
+                },
+                {
+                    name: "Munaafasah",
+                    nama: "kompetitif",
+                    score: 70,
+                    groupId: "karakter",
+                    parents: "Suka menguasai_Mempengaruhi_Karsa_Extrovert",
+                },
+                {
+                    name: "Nashiihah",
+                    nama: "penasehat",
+                    score: 90,
+                    groupId: "karakter",
+                    parents: "Suka memotivasi_Mempengaruhi_Karsa_Extrovert",
+                },
+                {
+                    name: "Fashaahah",
+                    nama: "komunikatif",
+                    score: 70,
+                    groupId: "karakter",
+                    parents: "Suka memotivasi_Mempengaruhi_Karsa_Extrovert",
+                },
+                {
+                    name: "Nushrah",
+                    nama: "menolong",
+                    score: 70,
+                    groupId: "karakter",
+                    parents: "Suka menolong_Mempengaruhi_Karsa_Extrovert",
+                },
+                {
+                    name: "Juud",
+                    nama: "dermawan",
+                    score: 90,
+                    groupId: "karakter",
+                    parents: "Suka menolong_Mempengaruhi_Karsa_Extrovert",
+                },
+                {
+                    name: "Ta'aawun",
+                    nama: "bekerjaasama",
+                    score: 60,
+                    groupId: "karakter",
+                    parents:
+                        "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert",
+                },
+                {
+                    name: "Ulfah",
+                    nama: "bersatu",
+                    score: 80,
+                    groupId: "karakter",
+                    parents:
+                        "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert",
+                },
+                {
+                    name: "‘adaalah",
+                    nama: "adil",
+                    score: 60,
+                    groupId: "karakter",
+                    parents:
+                        "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert",
+                },
+                {
+                    name: "Wafaa'",
+                    nama: "menepati janji",
+                    score: 90,
+                    groupId: "karakter",
+                    parents:
+                        "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert",
+                },
+                {
+                    name: "Muzaah",
+                    nama: "humoris",
+                    score: 80,
+                    groupId: "karakter",
+                    parents:
+                        "Suka membuat hubungan baru_Bekerjasama_Cipta_Extrovert",
+                },
+                {
+                    name: "Basyaasyah",
+                    nama: "berseri-seri",
+                    score: 100,
+                    groupId: "karakter",
+                    parents:
+                        "Suka membuat hubungan baru_Bekerjasama_Cipta_Extrovert",
+                },
+                {
+                    name: "Rifq",
+                    nama: "lemah lembut",
+                    score: 100,
+                    groupId: "karakter",
+                    parents:
+                        "Suka mengeratkan hubungan yang sudah ada_Bekerjasama_Cipta_Extrovert",
+                },
+                {
+                    name: "Rahmah",
+                    nama: "berbelas kasih",
+                    score: 90,
+                    groupId: "karakter",
+                    parents:
+                        "Suka mengeratkan hubungan yang sudah ada_Bekerjasama_Cipta_Extrovert",
+                },
+                {
+                    name: "Mahabbah",
+                    nama: "penuh cinta",
+                    score: 60,
+                    groupId: "karakter",
+                    parents:
+                        "Suka melayani dengan cara memberi_Melayani_Rasa_Extrovert",
+                },
+                {
+                    name: "Itsaar",
+                    nama: "melayani",
+                    score: 70,
+                    groupId: "karakter",
+                    parents:
+                        "Suka melayani dengan cara memberi_Melayani_Rasa_Extrovert",
+                },
+                {
+                    name: "Kitmaanus sirr",
+                    nama: "penjaga rahasia",
+                    score: 100,
+                    groupId: "karakter",
+                    parents:
+                        "Suka melayani dengan cara menjaga_Melayani_Rasa_Extrovert",
+                },
+                {
+                    name: "Satr",
+                    nama: "menutup aib",
+                    score: 60,
+                    groupId: "karakter",
+                    parents:
+                        "Suka melayani dengan cara menjaga_Melayani_Rasa_Extrovert",
+                },
+                {
+                    name: "Amaanah",
+                    nama: "bertanggung jawab",
+                    score: 70,
+                    groupId: "karakter",
+                    parents:
+                        "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert",
+                },
+                {
+                    name: "Anaah",
+                    nama: "tidak tergesa",
+                    score: 80,
+                    groupId: "karakter",
+                    parents:
+                        "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert",
+                },
+                {
+                    name: "Hilm",
+                    nama: "santun",
+                    score: 70,
+                    groupId: "karakter",
+                    parents:
+                        "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert",
+                },
+                {
+                    name: "Tawaadhu'",
+                    nama: "rendah hati",
+                    score: 70,
+                    groupId: "karakter",
+                    parents:
+                        "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert",
+                },
+            ];
+
+            // 2. Process Data List
+            const combinedList = rawData
+                .map((item, index) => {
+                    const groupString = item.parents;
+                    let itemColor = "#ccc";
+                    let sortIndex = 99;
+                    let jiwa = "";
+                    let type = "";
+
+                    if (groupString.includes("Karsa")) {
+                        jiwa = "karsa";
+                        itemColor = getColor("red", index);
+                        sortIndex = 1;
+                    } else if (groupString.includes("Cipta")) {
+                        jiwa = "cipta";
+                        itemColor = getColor("yellow", index);
+                        sortIndex = 2;
+                    } else if (groupString.includes("Rasa")) {
+                        jiwa = "rasa";
+                        itemColor = getColor("green", index);
+                        sortIndex = 3;
+                    }
+
+                    if (groupString.toLowerCase().includes("introvert")) {
+                        type = "introvert";
+                    } else {
+                        type = "extrovert";
+                    }
+
+                    return {
+                        name: item.nama,
+                        originalName: item.name,
+                        value: item.score,
+                        itemStyle: { color: itemColor },
+                        sortIndex: sortIndex,
+                        parent: groupString,
+                        jiwa,
+                        type,
+                        uniqueId: `${type}_${jiwa}`,
+                        groupLabel: groupString.split("_")[0],
+                    };
+                })
+                .sort((a, b) => a.sortIndex - b.sortIndex);
+
+            // Count for Page 1 MarkLines/Areas
+            let countKarsa = 0,
+                countCipta = 0,
+                countRasa = 0;
+            combinedList.forEach((item) => {
+                if (item.sortIndex === 1) countKarsa++;
+                if (item.sortIndex === 2) countCipta++;
+                if (item.sortIndex === 3) countRasa++;
+            });
+
+            // Calculate Top 5 Names for Euforia Mode
+            // Sort descending by value, take top 5 names
+            const top5Names = [...combinedList]
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 5)
+                .map((item) => item.name);
+
+            const categories = combinedList.map((i) => i.name);
+            const valueAdjustment = { rasa: 1, cipta: 1, karsa: 1 };
+            const karakterLine = Math.max(
+                ...combinedList.map((item) =>
+                    Math.round(item.value * valueAdjustment[item.jiwa]),
+                ),
+            );
+
+            // 3. Data Bucket Helper Functions
+            const getBucketData = (type, jiwa) => {
+                return combinedList.map((item) => {
+                    if (item.type === type && item.jiwa === jiwa) {
+                        return {
+                            name: item.name,
+                            value: Math.round(
+                                item.value * valueAdjustment[item.jiwa],
+                            ),
+                            itemStyle: item.itemStyle,
+                        };
+                    } else {
+                        return null;
+                    }
+                });
+            };
+
+            const getBucketDataForPage2 = (type, jiwa) => {
+                return combinedList
+                    .filter((item) => item.type === type && item.jiwa === jiwa)
+                    .map((item) => ({
+                        name: item.name,
+                        value: Math.round(
+                            item.value * valueAdjustment[item.jiwa],
+                        ),
+                        itemStyle: item.itemStyle,
+                        groupLabel: item.groupLabel,
+                    }));
+            };
+
+            // New Bucket Helper for Euforia Page
+            const getEuforiaData = (type, jiwa) => {
+                return combinedList
+                    .filter((item) => item.type === type && item.jiwa === jiwa)
+                    .map((item) => {
+                        const originalValue = item.value;
+                        const isTop5 = top5Names.includes(item.name);
+                        // Boost top 5 by 1.5, lower others by 0.5
+                        const multiplier = isTop5 ? 1.5 : 0.5;
+                        const newValue = Math.round(originalValue * multiplier);
+
+                        return {
+                            name: item.name,
+                            value: newValue,
+                            itemStyle: item.itemStyle,
+                            // Add marker for clarity in tooltip
+                            isTop5: isTop5,
+                        };
+                    });
+            };
+
+            const seriesKeys = {
+                intro_karsa: "intro_karsa",
+                extro_karsa: "extro_karsa",
+                intro_cipta: "intro_cipta",
+                extro_cipta: "extro_cipta",
+                intro_rasa: "intro_rasa",
+                extro_rasa: "extro_rasa",
+            };
+
+            // ==========================================
+            // 2. CHART GENERATOR FUNCTIONS
+            // ==========================================
+
+            function get40BakatViewOption() {
+                const makeSeries = (id, type, jiwa) => ({
+                    type: "bar",
+                    id: id,
+                    name: "Nilai",
+                    stack: "total",
+                    data: getBucketData(type, jiwa),
+                    universalTransition: { enabled: true },
+                    itemStyle: { borderRadius: [5, 5, 0, 0] },
+                    label: { show: true, position: "top", fontSize: 10 },
+                    markArea:
+                        id === "intro_karsa"
+                            ? {
+                                  silent: true,
+                                  itemStyle: { opacity: 0.15 },
+                                  label: {
+                                      position: "insideTopRight",
+                                      color: "#333",
+                                      fontSize: 14,
+                                      fontWeight: "bold",
+                                      align: "left",
+                                  },
+                                  data: [
+                                      [
+                                          {
+                                              name: "Karakter",
+                                              yAxis: 0,
+                                              itemStyle: { color: "brown" },
+                                          },
+                                          { yAxis: karakterLine },
+                                      ],
+                                  ],
+                              }
+                            : undefined,
+                });
+
+                return {
+                    title: {
+                        text: "Tujuan Hidup",
+                        left: "center",
+                        top: "0",
+                        textStyle: { fontSize: 18 },
+                    },
+                    tooltip: { trigger: "item", formatter: "{b}: {c}" },
+                    grid: {
+                        left: "3%",
+                        right: "4%",
+                        bottom: "10%",
+                        containLabel: true,
+                    },
+                    xAxis: {
+                        type: "category",
+                        data: categories,
+                        axisLabel: { interval: 0, rotate: 45, fontSize: 10 },
+                        z: 10,
+                    },
+                    yAxis: { type: "value" },
+                    series: [
+                        makeSeries(
+                            seriesKeys.intro_karsa,
+                            "introvert",
+                            "karsa",
+                        ),
+                        makeSeries(
+                            seriesKeys.extro_karsa,
+                            "extrovert",
+                            "karsa",
+                        ),
+                        makeSeries(
+                            seriesKeys.intro_cipta,
+                            "introvert",
+                            "cipta",
+                        ),
+                        makeSeries(
+                            seriesKeys.extro_cipta,
+                            "extrovert",
+                            "cipta",
+                        ),
+                        makeSeries(seriesKeys.intro_rasa, "introvert", "rasa"),
+                        makeSeries(seriesKeys.extro_rasa, "extrovert", "rasa"),
+                        {
+                            type: "bar",
+                            id: "fitrah",
+                            name: "Fitrah",
+                            barGap: "-100%",
+                            data: combinedList.map((item) => ({
+                                value:
+                                    item.value *
+                                    (1 - valueAdjustment[item.jiwa]),
+                                label: { formatter: `${item.value}` },
+                                itemStyle: {
+                                    ...item.itemStyle,
+                                    opacity: 0.5,
+                                    color: "#fff",
+                                },
+                            })),
+                            itemStyle: { borderRadius: [5, 5, 0, 0] },
+                            label: {
+                                show: true,
+                                position: "top",
+                                fontSize: 10,
+                            },
+                            z: -1,
+                            markArea: {
+                                silent: true,
+                                itemStyle: { opacity: 0.15 },
+                                label: {
+                                    position: "top",
+                                    color: "#333",
+                                    fontSize: 14,
+                                    fontWeight: "bold",
+                                },
+                                data: [
+                                    [
+                                        {
+                                            name: "Fisik (PQ)\n(Karsa)",
+                                            xAxis: 0,
+                                            itemStyle: { color: "white" },
+                                        },
+                                        { xAxis: countKarsa - 1 },
+                                    ],
+                                    [
+                                        {
+                                            name: "Akal (IQ)\n(Cipta)",
+                                            xAxis: countKarsa,
+                                            itemStyle: { color: "white" },
+                                        },
+                                        { xAxis: countKarsa + countCipta - 1 },
+                                    ],
+                                    [
+                                        {
+                                            name: "Hati (EQ)\n(Rasa)",
+                                            xAxis: countKarsa + countCipta,
+                                            itemStyle: { color: "white" },
+                                        },
+                                        { xAxis: categories.length - 1 },
+                                    ],
+                                ],
+                            },
+                        },
+                    ],
+                    animationDurationUpdate: 1000,
+                };
+            }
+
+            function getIntrovertExtrovertViewOption() {
+                const dIntroKarsa = getBucketDataForPage2("introvert", "karsa");
+                const dExtroKarsa = getBucketDataForPage2("extrovert", "karsa");
+                const dIntroCipta = getBucketDataForPage2("introvert", "cipta");
+                const dExtroCipta = getBucketDataForPage2("extrovert", "cipta");
+                const dIntroRasa = getBucketDataForPage2("introvert", "rasa");
+                const dExtroRasa = getBucketDataForPage2("extrovert", "rasa");
+
+                const commonYProps = (data, position) => ({
+                    type: "category",
+                    data: data.map((i) => i.name),
+                    position: position,
+                    axisLabel: { fontSize: 10, interval: 0 },
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    inverse: true,
+                });
+
+                const makeSeries = (id, data, xIndex, yIndex) => ({
+                    type: "bar",
+                    id: id,
+                    xAxisIndex: xIndex,
+                    yAxisIndex: yIndex,
+                    data: data,
+                    universalTransition: { enabled: true },
+                });
+
+                return {
+                    tooltip: { trigger: "item", formatter: "{b}: {c}" },
+                    title: [
+                        {
+                            text: "Introvert",
+                            left: "25%",
+                            top: "2%",
+                            textAlign: "center",
+                        },
+                        {
+                            text: "Extrovert",
+                            left: "75%",
+                            top: "2%",
+                            textAlign: "center",
+                        },
+                        {
+                            text: "Bekerja Keras (Fisik)",
+                            left: "25%",
+                            top: "8%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#ef5350" },
+                        },
+                        {
+                            text: "Mempengaruhi (Fisik)",
+                            left: "75%",
+                            top: "8%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#ef5350" },
+                        },
+                        {
+                            text: "Berpikir (Akal)",
+                            left: "25%",
+                            top: "38%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#fdd835" },
+                        },
+                        {
+                            text: "Bekerjasama (Akal)",
+                            left: "75%",
+                            top: "38%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#fdd835" },
+                        },
+                        {
+                            text: "Berperasaan (Hati)",
+                            left: "25%",
+                            top: "68%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#66bb6a" },
+                        },
+                        {
+                            text: "Melayani (Hati)",
+                            left: "75%",
+                            top: "68%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#66bb6a" },
+                        },
+                    ],
+                    grid: [
+                        { top: "12%", height: "23%", left: "5%", right: "52%" }, // 0: Intro Karsa
+                        { top: "12%", height: "23%", left: "52%", right: "5%" }, // 1: Extro Karsa
+                        { top: "42%", height: "23%", left: "5%", right: "52%" }, // 2: Intro Cipta
+                        { top: "42%", height: "23%", left: "52%", right: "5%" }, // 3: Extro Cipta
+                        { top: "72%", height: "23%", left: "5%", right: "52%" }, // 4: Intro Rasa
+                        { top: "72%", height: "23%", left: "52%", right: "5%" }, // 5: Extro Rasa
+                    ],
+                    xAxis: [
+                        {
+                            gridIndex: 0,
+                            type: "value",
+                            inverse: true,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 1,
+                            type: "value",
+                            inverse: false,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 2,
+                            type: "value",
+                            inverse: true,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 3,
+                            type: "value",
+                            inverse: false,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 4,
+                            type: "value",
+                            inverse: true,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 5,
+                            type: "value",
+                            inverse: false,
+                            show: false,
+                        },
+                    ],
+                    yAxis: [
+                        { ...commonYProps(dIntroKarsa, "left"), gridIndex: 0 },
+                        { ...commonYProps(dExtroKarsa, "right"), gridIndex: 1 },
+                        { ...commonYProps(dIntroCipta, "left"), gridIndex: 2 },
+                        { ...commonYProps(dExtroCipta, "right"), gridIndex: 3 },
+                        { ...commonYProps(dIntroRasa, "left"), gridIndex: 4 },
+                        { ...commonYProps(dExtroRasa, "right"), gridIndex: 5 },
+                    ],
+                    series: [
+                        makeSeries(seriesKeys.intro_karsa, dIntroKarsa, 0, 0),
+                        makeSeries(seriesKeys.extro_karsa, dExtroKarsa, 1, 1),
+                        makeSeries(seriesKeys.intro_cipta, dIntroCipta, 2, 2),
+                        makeSeries(seriesKeys.extro_cipta, dExtroCipta, 3, 3),
+                        makeSeries(seriesKeys.intro_rasa, dIntroRasa, 4, 4),
+                        makeSeries(seriesKeys.extro_rasa, dExtroRasa, 5, 5),
+                    ],
+                    animationDurationUpdate: 1000,
+                };
+            }
+
+            function get18BakatViewOption() {
+                const dIntroKarsa = getBucketDataForPage2("introvert", "karsa");
+                const dExtroKarsa = getBucketDataForPage2("extrovert", "karsa");
+                const dIntroCipta = getBucketDataForPage2("introvert", "cipta");
+                const dExtroCipta = getBucketDataForPage2("extrovert", "cipta");
+                const dIntroRasa = getBucketDataForPage2("introvert", "rasa");
+                const dExtroRasa = getBucketDataForPage2("extrovert", "rasa");
+
+                const mainYProps = (data, position) => ({
+                    type: "category",
+                    data: data.map((i) => i.name),
+                    position: position,
+                    axisLabel: {
+                        fontSize: 10,
+                        interval: 0,
+                        width: 85,
+                        overflow: "break",
+                    },
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    inverse: true,
+                });
+
+                const middleYProps = (data, position) => ({
+                    type: "category",
+                    data: data.map((i) =>
+                        i.groupLabel
+                            .replace("Suka ", "")
+                            .replace("cara ", "")
+                            .replace("hubungan", "hub.")
+                            .replace("dengan", "dgn")
+                            .replace("yang ada", "")
+                            .replace("yang sudah ada", ""),
+                    ),
+                    position: position,
+                    axisLabel: {
+                        fontSize: 10,
+                        interval: 0,
+                        color: "#666",
+                        fontWeight: "bold",
+                        width: 150,
+                        overflow: "break",
+                    },
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    inverse: true,
+                });
+
+                const makeSeries = (id, data, xIndex, yIndex) => ({
+                    type: "bar",
+                    id: id,
+                    xAxisIndex: xIndex,
+                    yAxisIndex: yIndex,
+                    data: data,
+                    universalTransition: { enabled: true },
+                });
+
+                return {
+                    tooltip: { trigger: "item", formatter: "{b}: {c}" },
+                    title: [
+                        {
+                            text: "Introvert",
+                            left: "21.5%",
+                            top: "2%",
+                            textAlign: "center",
+                        },
+                        {
+                            text: "Extrovert",
+                            left: "78.5%",
+                            top: "2%",
+                            textAlign: "center",
+                        },
+                        {
+                            text: "Bekerja Keras (Fisik)",
+                            left: "21.5%",
+                            top: "8%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#ef5350" },
+                        },
+                        {
+                            text: "Mempengaruhi (Fisik)",
+                            left: "78.5%",
+                            top: "8%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#ef5350" },
+                        },
+                        {
+                            text: "Berpikir (Akal)",
+                            left: "21.5%",
+                            top: "38%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#fdd835" },
+                        },
+                        {
+                            text: "Bekerjasama (Akal)",
+                            left: "78.5%",
+                            top: "38%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#fdd835" },
+                        },
+                        {
+                            text: "Berperasaan (Hati)",
+                            left: "21.5%",
+                            top: "68%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#66bb6a" },
+                        },
+                        {
+                            text: "Melayani (Hati)",
+                            left: "78.5%",
+                            top: "68%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#66bb6a" },
+                        },
+                    ],
+                    grid: [
+                        {
+                            top: "12%",
+                            height: "23%",
+                            left: "15%",
+                            right: "60%",
+                        },
+                        {
+                            top: "12%",
+                            height: "23%",
+                            left: "60%",
+                            right: "15%",
+                        },
+                        {
+                            top: "42%",
+                            height: "23%",
+                            left: "15%",
+                            right: "60%",
+                        },
+                        {
+                            top: "42%",
+                            height: "23%",
+                            left: "60%",
+                            right: "15%",
+                        },
+                        {
+                            top: "72%",
+                            height: "23%",
+                            left: "15%",
+                            right: "60%",
+                        },
+                        {
+                            top: "72%",
+                            height: "23%",
+                            left: "60%",
+                            right: "15%",
+                        },
+                    ],
+                    xAxis: [
+                        {
+                            gridIndex: 0,
+                            type: "value",
+                            inverse: true,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 1,
+                            type: "value",
+                            inverse: false,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 2,
+                            type: "value",
+                            inverse: true,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 3,
+                            type: "value",
+                            inverse: false,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 4,
+                            type: "value",
+                            inverse: true,
+                            show: false,
+                        },
+                        {
+                            gridIndex: 5,
+                            type: "value",
+                            inverse: false,
+                            show: false,
+                        },
+                    ],
+                    yAxis: [
+                        { ...mainYProps(dIntroKarsa, "left"), gridIndex: 0 },
+                        { ...middleYProps(dIntroKarsa, "right"), gridIndex: 0 },
+                        { ...mainYProps(dExtroKarsa, "right"), gridIndex: 1 },
+                        { ...middleYProps(dExtroKarsa, "left"), gridIndex: 1 },
+                        { ...mainYProps(dIntroCipta, "left"), gridIndex: 2 },
+                        { ...middleYProps(dIntroCipta, "right"), gridIndex: 2 },
+                        { ...mainYProps(dExtroCipta, "right"), gridIndex: 3 },
+                        { ...middleYProps(dExtroCipta, "left"), gridIndex: 3 },
+                        { ...mainYProps(dIntroRasa, "left"), gridIndex: 4 },
+                        { ...middleYProps(dIntroRasa, "right"), gridIndex: 4 },
+                        { ...mainYProps(dExtroRasa, "right"), gridIndex: 5 },
+                        { ...middleYProps(dExtroRasa, "left"), gridIndex: 5 },
+                    ],
+                    series: [
+                        makeSeries(seriesKeys.intro_karsa, dIntroKarsa, 0, 0),
+                        makeSeries(seriesKeys.extro_karsa, dExtroKarsa, 1, 2),
+                        makeSeries(seriesKeys.intro_cipta, dIntroCipta, 2, 4),
+                        makeSeries(seriesKeys.extro_cipta, dExtroCipta, 3, 6),
+                        makeSeries(seriesKeys.intro_rasa, dIntroRasa, 4, 8),
+                        makeSeries(seriesKeys.extro_rasa, dExtroRasa, 5, 10),
+                    ],
+                    animationDurationUpdate: 1000,
+                };
+            }
+
+            function getEuforiaViewOption() {
+                // Use the euforia bucket data that boosts top 5
+                const dIntroKarsa = getEuforiaData("introvert", "karsa");
+                const dExtroKarsa = getEuforiaData("extrovert", "karsa");
+                const dIntroCipta = getEuforiaData("introvert", "cipta");
+                const dExtroCipta = getEuforiaData("extrovert", "cipta");
+                const dIntroRasa = getEuforiaData("introvert", "rasa");
+                const dExtroRasa = getEuforiaData("extrovert", "rasa");
+
+                const commonYProps = (data, position) => ({
+                    type: "category",
+                    data: data.map((i) => i.name),
+                    position: position,
+                    axisLabel: { fontSize: 10, interval: 0 },
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    inverse: true,
+                });
+
+                const makeSeries = (id, data, xIndex, yIndex) => ({
+                    type: "bar",
+                    id: id,
+                    xAxisIndex: xIndex,
+                    yAxisIndex: yIndex,
+                    data: data,
+                    universalTransition: { enabled: true },
+                    markLine: {
+                        symbol: "none",
+                        lineStyle: {
+                            color: "gray",
+                            type: "dashed",
+                            opacity: 0.5,
+                        },
+                        label: { show: false },
+                        data: [{ xAxis: 100 }],
+                    },
+                });
+
+                // Layout matches "Introvert - Ekstrovert" (Page 2), but with X-Axis visible
+                return {
+                    tooltip: { trigger: "item", formatter: "{b}: {c}" },
+                    title: [
+                        {
+                            text: "Introvert",
+                            left: "25%",
+                            top: "2%",
+                            textAlign: "center",
+                        },
+                        {
+                            text: "Extrovert",
+                            left: "75%",
+                            top: "2%",
+                            textAlign: "center",
+                        },
+                        {
+                            text: "Bekerja Keras (Fisik)",
+                            left: "25%",
+                            top: "8%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#ef5350" },
+                        },
+                        {
+                            text: "Mempengaruhi (Fisik)",
+                            left: "75%",
+                            top: "8%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#ef5350" },
+                        },
+                        {
+                            text: "Berpikir (Akal)",
+                            left: "25%",
+                            top: "38%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#fdd835" },
+                        },
+                        {
+                            text: "Bekerjasama (Akal)",
+                            left: "75%",
+                            top: "38%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#fdd835" },
+                        },
+                        {
+                            text: "Berperasaan (Hati)",
+                            left: "25%",
+                            top: "68%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#66bb6a" },
+                        },
+                        {
+                            text: "Melayani (Hati)",
+                            left: "75%",
+                            top: "68%",
+                            textAlign: "center",
+                            textStyle: { fontSize: 12, color: "#66bb6a" },
+                        },
+                    ],
+                    grid: [
+                        { top: "12%", height: "23%", left: "5%", right: "62%" }, // 0: Intro Karsa
+                        { top: "12%", height: "23%", left: "62%", right: "5%" }, // 1: Extro Karsa
+                        { top: "42%", height: "23%", left: "5%", right: "62%" }, // 2: Intro Cipta
+                        { top: "42%", height: "23%", left: "62%", right: "5%" }, // 3: Extro Cipta
+                        { top: "72%", height: "23%", left: "5%", right: "62%" }, // 4: Intro Rasa
+                        { top: "72%", height: "23%", left: "62%", right: "5%" }, // 5: Extro Rasa
+                    ],
+                    xAxis: [
+                        // Enable Show: true for visibility, max 150
+                        {
+                            gridIndex: 0,
+                            type: "value",
+                            inverse: true,
+                            show: true,
+                            min: 0,
+                            max: 150,
+                            axisLabel: { fontSize: 8 },
+                        },
+                        {
+                            gridIndex: 1,
+                            type: "value",
+                            inverse: false,
+                            show: true,
+                            min: 0,
+                            max: 150,
+                            axisLabel: { fontSize: 8 },
+                        },
+                        {
+                            gridIndex: 2,
+                            type: "value",
+                            inverse: true,
+                            show: true,
+                            min: 0,
+                            max: 150,
+                            axisLabel: { fontSize: 8 },
+                        },
+                        {
+                            gridIndex: 3,
+                            type: "value",
+                            inverse: false,
+                            show: true,
+                            min: 0,
+                            max: 150,
+                            axisLabel: { fontSize: 8 },
+                        },
+                        {
+                            gridIndex: 4,
+                            type: "value",
+                            inverse: true,
+                            show: true,
+                            min: 0,
+                            max: 150,
+                            axisLabel: { fontSize: 8 },
+                        },
+                        {
+                            gridIndex: 5,
+                            type: "value",
+                            inverse: false,
+                            show: true,
+                            min: 0,
+                            max: 150,
+                            axisLabel: { fontSize: 8 },
+                        },
+                    ],
+                    yAxis: [
+                        { ...commonYProps(dIntroKarsa, "right"), gridIndex: 0 },
+                        { ...commonYProps(dExtroKarsa, "left"), gridIndex: 1 },
+                        { ...commonYProps(dIntroCipta, "right"), gridIndex: 2 },
+                        { ...commonYProps(dExtroCipta, "left"), gridIndex: 3 },
+                        { ...commonYProps(dIntroRasa, "right"), gridIndex: 4 },
+                        { ...commonYProps(dExtroRasa, "left"), gridIndex: 5 },
+                    ],
+                    series: [
+                        makeSeries(seriesKeys.intro_karsa, dIntroKarsa, 0, 0),
+                        makeSeries(seriesKeys.extro_karsa, dExtroKarsa, 1, 1),
+                        makeSeries(seriesKeys.intro_cipta, dIntroCipta, 2, 2),
+                        makeSeries(seriesKeys.extro_cipta, dExtroCipta, 3, 3),
+                        makeSeries(seriesKeys.intro_rasa, dIntroRasa, 4, 4),
+                        makeSeries(seriesKeys.extro_rasa, dExtroRasa, 5, 5),
+                    ],
+                    animationDurationUpdate: 1000,
+                };
+            }
+
+            // ==========================================
+            // 3. APP LOGIC
+            // ==========================================
+
+            const pagesConfig = [
+                {
+                    label: "1. 40 Bakat",
+                    type: "chart",
+                    generator: get40BakatViewOption,
+                },
+                {
+                    label: "2. Introvert - Ekstrovert",
+                    type: "chart",
+                    generator: getIntrovertExtrovertViewOption,
+                },
+                {
+                    label: "3. Kamus Bakat",
+                    type: "chart",
+                    generator: get18BakatViewOption,
+                },
+                {
+                    label: "4. Euforia",
+                    type: "chart",
+                    generator: getEuforiaViewOption,
+                },
+            ];
+
+            const chartDom = document.getElementById("chart-container");
+            const myChart = echarts.init(chartDom);
+            let currentIndex = 0;
+
+            function renderNavigation() {
+                const navContainer = document.getElementById("nav-container");
+                navContainer.innerHTML = "";
+                const activeClass =
+                    "bg-indigo-600 text-white shadow-md transform scale-105";
+                const inactiveClass =
+                    "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300";
+                const baseClass =
+                    "btn-transition h-10 px-4 rounded-lg text-sm font-medium whitespace-nowrap flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2";
+
+                pagesConfig.forEach((page, index) => {
+                    const btn = document.createElement("button");
+                    btn.textContent = page.label;
+                    btn.id = `nav-btn-${index}`;
+                    btn.className = `${baseClass} ${index === currentIndex ? activeClass : inactiveClass}`;
+                    btn.onclick = () => switchPage(index);
+                    navContainer.appendChild(btn);
+                });
+                updateControls();
+                updateIndicator();
+            }
+
+            function updateControls() {
+                document.getElementById("btn-prev").disabled =
+                    currentIndex === 0;
+                document.getElementById("btn-next").disabled =
+                    currentIndex === pagesConfig.length - 1;
+            }
+
+            function updateIndicator() {
+                document.getElementById("page-indicator").textContent =
+                    `Page ${currentIndex + 1} of ${pagesConfig.length}`;
+            }
+
+            function switchPage(index) {
+                if (index < 0 || index >= pagesConfig.length) return;
+                currentIndex = index;
+                const page = pagesConfig[index];
+
+                myChart.resize();
+                myChart.setOption(page.generator(), true);
+
+                renderNavigation();
+                const activeBtn = document.getElementById(`nav-btn-${index}`);
+                if (activeBtn)
+                    activeBtn.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                        inline: "center",
+                    });
+            }
+
+            function prevPage() {
+                switchPage(currentIndex - 1);
+            }
+            function nextPage() {
+                switchPage(currentIndex + 1);
+            }
+
+            // Init
+            renderNavigation();
+            switchPage(0);
+            window.addEventListener("resize", () => {
+                myChart.resize();
+                myChart.setOption(pagesConfig[currentIndex].generator());
+            });
+        </script>
+    </body>
+</html>

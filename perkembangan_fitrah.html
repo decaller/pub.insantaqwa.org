@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growth Phases Line Chart</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Custom radio styling */
+        .radio-label { cursor: pointer; transition: all 0.2s; }
+        .radio-input:checked + .radio-label {
+            background-color: #3b82f6; color: white; border-color: #3b82f6;
+        }
+        
+        /* Smooth transitions for dark mode */
+        .transition-colors { transition-property: background-color, border-color, color, fill, stroke; transition-duration: 300ms; }
+    </style>
+</head>
+<body class="w-full p-0 overflow-hidden bg-gray-50 dark:bg-[rgb(17,19,25)] transition-colors">
+
+    <div class="w-full p-4 relative flex flex-col items-center min-h-screen">
+        
+        <!-- Theme Toggle -->
+        <button id="theme-toggle" class="absolute top-4 right-4 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors z-10">
+            <svg id="sun-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="moon-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+
+        <!-- Header -->
+        <div class="mb-4 text-center mt-4">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 transition-colors">Dinamika Pertumbuhan Karakter</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 transition-colors">Mendidik Sesuai Karakter Perkembangan</p>
+        </div>
+
+        <!-- Animation Control -->
+        <div class="mb-6">
+            <button id="btn-play" class="flex items-center gap-2 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none transition-colors shadow-lg shadow-blue-500/30">
+                <!-- Play Icon -->
+                <svg id="icon-play" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <!-- Stop Icon -->
+                <svg id="icon-pause" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span id="text-play" class="font-semibold text-sm">Stop Loop</span>
+            </button>
+        </div>
+
+        <!-- Scenarios Controls -->
+        <div class="flex flex-wrap justify-center gap-3 mb-6 w-full max-w-4xl">
+            <label class="relative">
+                <input type="radio" name="scenario" value="ideal" class="radio-input sr-only" checked>
+                <div class="radio-label px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-600 dark:text-gray-300 hover:border-blue-400">
+                    Kondisi Ideal
+                </div>
+            </label>
+            <label class="relative">
+                <input type="radio" name="scenario" value="hutang_iman" class="radio-input sr-only">
+                <div class="radio-label px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-600 dark:text-gray-300 hover:border-blue-400">
+                    Hutang Pengasuhan Iman
+                </div>
+            </label>
+            <label class="relative">
+                <input type="radio" name="scenario" value="hutang_belajar" class="radio-input sr-only">
+                <div class="radio-label px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-600 dark:text-gray-300 hover:border-blue-400">
+                    Hutang Pengasuhan Belajar
+                </div>
+            </label>
+            <label class="relative">
+                <input type="radio" name="scenario" value="hutang_bakat" class="radio-input sr-only">
+                <div class="radio-label px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-600 dark:text-gray-300 hover:border-blue-400">
+                    Hutang Pengasuhan Bakat
+                </div>
+            </label>
+        </div>
+
+        <!-- Chart Container -->
+        <div id="line-chart" class="w-full max-w-6xl h-[500px] bg-white dark:bg-black rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-2"></div>
+    </div>
+
+    <script>
+        // --- Theme Logic ---
+        const htmlEl = document.documentElement;
+        const themeBtn = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            htmlEl.classList.add('dark');
+        }
+        function updateIcons() {
+            if (htmlEl.classList.contains('dark')) {
+                sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden');
+            }
+        }
+        updateIcons();
+        themeBtn.addEventListener('click', () => {
+            htmlEl.classList.toggle('dark');
+            updateIcons();
+            if (!isLooping) updateChart(); 
+        });
+
+        // --- Data Generation ---
+        const ages = Array.from({length: 41}, (_, i) => i);
+
+        function getCompositeCurve(age, midpoint, steepness, maxValue) {
+            const logistic = (x) => 1 / (1 + Math.exp(-steepness * (x - midpoint)));
+            const logStart = logistic(0);
+            const logEnd = logistic(40);
+            const logRaw = logistic(age);
+            const logNorm = (logRaw - logStart) / (logEnd - logStart);
+            const linNorm = age / 40;
+            const weightLog = 0.8;
+            const weightLin = 0.2;
+            const combined = (logNorm * weightLog) + (linNorm * weightLin);
+            return combined * maxValue;
+        }
+
+        function getData(scenario) {
+            let iman = [], belajar = [], bakat = [];
+            
+            // -- IDEAL CONFIGURATION (Base) --
+            let pIman = { mid: 3.5, k: 0.6, max: 100 }; 
+            let pBelajar = { mid: 8.5, k: 0.7, max: 100 };
+            let pBakat = { mid: 12.5, k: 0.7, max: 100 };
+
+            // -- SCENARIO ADJUSTMENTS --
+            if (scenario === 'hutang_iman') {
+                // Iman is flawed: Reduces foundation for everything
+                pIman = { mid: 15, k: 0.25, max: 60 };
+                // Belajar is affected (cascading delay)
+                pBelajar = { mid: 20, k: 0.25, max: 65 };
+                // Bakat is affected (cascading delay)
+                pBakat = { mid: 25, k: 0.25, max: 60 };
+            } else if (scenario === 'hutang_belajar') {
+                // Iman is assumed OK (based on "only karakter bakat is delayed")
+                // Belajar is flawed
+                pBelajar = { mid: 18, k: 0.25, max: 70 };
+                // Bakat is affected (cascading delay)
+                pBakat = { mid: 22, k: 0.25, max: 70 };
+            } else if (scenario === 'hutang_bakat') {
+                // Only Bakat is flawed
+                pBakat = { mid: 22, k: 0.25, max: 70 };
+            }
+
+            ages.forEach(age => {
+                iman.push(parseFloat(getCompositeCurve(age, pIman.mid, pIman.k, pIman.max).toFixed(1)));
+                belajar.push(parseFloat(getCompositeCurve(age, pBelajar.mid, pBelajar.k, pBelajar.max).toFixed(1)));
+                bakat.push(parseFloat(getCompositeCurve(age, pBakat.mid, pBakat.k, pBakat.max).toFixed(1)));
+            });
+
+            return { iman, belajar, bakat };
+        }
+
+        // --- Chart Configuration ---
+        const chartDom = document.getElementById('line-chart');
+        const myChart = echarts.init(chartDom);
+        let currentScenario = 'ideal';
+
+        function getColors(isDark) {
+            return {
+                text: isDark ? '#e5e7eb' : '#374151',
+                axis: isDark ? '#9ca3af' : '#9ca3af',
+                split: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                iman: '#84cc16',   // Neon Green
+                belajar: '#facc15', // Bright Yellow
+                bakat: '#f97316',   // Bright Orange
+                bgThufulah: isDark ? 'rgba(132, 204, 22, 0.2)' : 'rgba(132, 204, 22, 0.1)',
+                bgTamyiz: isDark ? 'rgba(250, 204, 21, 0.2)' : 'rgba(250, 204, 21, 0.1)',
+                bgMurahaqah: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)',
+                bgSyabab: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)',
+            };
+        }
+
+        function updateChart() {
+            const isDark = htmlEl.classList.contains('dark');
+            const colors = getColors(isDark);
+            const data = getData(currentScenario);
+            
+            const drawDuration = 3000; 
+
+            const option = {
+                backgroundColor: 'transparent',
+                animation: true,
+                animationDuration: drawDuration,
+                animationEasing: 'cubicOut',
+                // Add update animation settings for smooth morphing
+                animationDurationUpdate: 1000, 
+                animationEasingUpdate: 'cubicOut',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)',
+                    borderColor: colors.axis,
+                    textStyle: { color: colors.text },
+                    formatter: (params) => {
+                        let res = `<div style="font-weight:bold; margin-bottom:4px">Usia: ${params[0].axisValue} Tahun</div>`;
+                        params.forEach(p => {
+                            res += `<div style="display:flex; justify-content:space-between; width:180px">
+                                <span>${p.marker} ${p.seriesName}</span>
+                                <span style="font-weight:bold">${p.value}%</span>
+                            </div>`;
+                        });
+                        return res;
+                    }
+                },
+                legend: {
+                    data: ['Karakter Iman', 'Karakter Belajar', 'Karakter Bakat'],
+                    top: '5%',
+                    textStyle: { color: colors.text, fontSize: 14 }
+                },
+                grid: {
+                    left: '3%', right: '4%', bottom: '10%', top: '15%', containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ages,
+                    axisLine: { lineStyle: { color: colors.axis, width: 2 } },
+                    axisLabel: { 
+                        color: colors.text, 
+                        fontSize: 12,
+                        interval: 0,
+                        formatter: function (value) {
+                            if (value == 0) return '0';
+                            if (value == 7) return '7 th';
+                            if (value == 10) return '10 th';
+                            if (value == 15) return 'Baligh';
+                            if (value == 40) return '40 th';
+                            return ''; 
+                        }
+                    },
+                    axisTick: { show: false },
+                    splitLine: { show: false }
+                },
+                yAxis: {
+                    type: 'value',
+                    max: 100,
+                    min: 0,
+                    axisLine: { show: false },
+                    axisLabel: { show: true, color: colors.text },
+                    splitLine: { show: true, lineStyle: { color: colors.split } }
+                },
+                series: [
+                    {
+                        name: 'Karakter Iman',
+                        type: 'line',
+                        smooth: true,
+                        showSymbol: false,
+                        lineStyle: { width: 4, color: colors.iman },
+                        itemStyle: { color: colors.iman },
+                        data: data.iman,
+                        markArea: {
+                            silent: true,
+                            itemStyle: { opacity: 1 },
+                            animation: false,
+                            data: [
+                                [ { xAxis: 0, itemStyle: { color: colors.bgThufulah } }, { xAxis: 7 } ],
+                                [ { xAxis: 7, itemStyle: { color: colors.bgTamyiz } }, { xAxis: 10 } ],
+                                [ { xAxis: 10, itemStyle: { color: colors.bgMurahaqah } }, { xAxis: 15 } ],
+                                [ { xAxis: 15, itemStyle: { color: colors.bgSyabab } }, { xAxis: 40 } ]
+                            ]
+                        }
+                    },
+                    {
+                        name: 'Karakter Belajar',
+                        type: 'line',
+                        smooth: true,
+                        showSymbol: false,
+                        lineStyle: { width: 4, color: colors.belajar },
+                        itemStyle: { color: colors.belajar },
+                        data: data.belajar
+                    },
+                    {
+                        name: 'Karakter Bakat',
+                        type: 'line',
+                        smooth: true,
+                        showSymbol: false,
+                        lineStyle: { width: 4, color: colors.bakat },
+                        itemStyle: { color: colors.bakat },
+                        data: data.bakat
+                    }
+                ]
+            };
+
+            // MODIFIED: Removed myChart.clear() from here.
+            // We use standard merge to allow smooth transitions when changing radio buttons.
+            myChart.setOption(option);
+        }
+
+        // --- Animation Loop Logic ---
+        let isLooping = true; 
+        let loopTimer;
+        const LOOP_DURATION = 5000; // 3s draw + 2s pause
+
+        function runLoop() {
+            if (!isLooping) return;
+            
+            // MODIFIED: Clear is now handled here to restart the "drawing" effect for the loop
+            myChart.clear();
+            
+            // 1. Draw the chart (Animation runs for 3s)
+            updateChart();
+            
+            // 2. Schedule next restart
+            clearTimeout(loopTimer);
+            loopTimer = setTimeout(runLoop, LOOP_DURATION);
+        }
+
+        function stopLoop() {
+            isLooping = false;
+            clearTimeout(loopTimer);
+            updatePlayButtonUI();
+        }
+
+        function startLoop() {
+            isLooping = true;
+            updatePlayButtonUI();
+            runLoop();
+        }
+
+        function toggleLoop() {
+            if (isLooping) stopLoop();
+            else startLoop();
+        }
+
+        // --- Controls UI ---
+        const btnPlay = document.getElementById('btn-play');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        const textPlay = document.getElementById('text-play');
+
+        function updatePlayButtonUI() {
+            if (isLooping) {
+                iconPlay.classList.add('hidden');
+                iconPause.classList.remove('hidden');
+                textPlay.textContent = "Stop Loop";
+                btnPlay.classList.replace('bg-green-600', 'bg-blue-500'); 
+                btnPlay.classList.replace('hover:bg-green-700', 'hover:bg-blue-600');
+            } else {
+                iconPlay.classList.remove('hidden');
+                iconPause.classList.add('hidden');
+                textPlay.textContent = "Play Loop";
+                btnPlay.classList.replace('bg-blue-500', 'bg-green-600');
+                btnPlay.classList.replace('hover:bg-blue-600', 'hover:bg-green-700');
+            }
+        }
+
+        btnPlay.addEventListener('click', toggleLoop);
+
+        // --- Init ---
+        document.querySelectorAll('input[name="scenario"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentScenario = e.target.value;
+                
+                // MODIFIED: When changing radio, we just update (morph)
+                // We do NOT call runLoop() which forces a clear.
+                updateChart(); 
+
+                // If looping, we reset the timer so the user has time to see the change
+                // before the next auto-clear happens.
+                if (isLooping) {
+                    clearTimeout(loopTimer);
+                    loopTimer = setTimeout(runLoop, LOOP_DURATION);
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => myChart.resize());
+
+        // Start
+        runLoop();
+
+    </script>
+</body>
+</html>

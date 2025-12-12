@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dim">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Survey Hub</title>
+    
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Tailwind CSS & DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti for Congrats -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        html { scroll-behavior: smooth; }
+        input[type=range]::-webkit-slider-thumb { height: 24px; width: 24px; }
+        
+        /* Transition classes */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+    </style>
+</head>
+<body class="bg-base-300 h-screen overflow-hidden text-base-content">
+
+    <div id="app" class="relative h-full w-full flex flex-col">
+
+        <!-- VIEW: DASHBOARD -->
+        <div v-if="view === 'dashboard'" class="h-full w-full flex flex-col p-6 overflow-y-auto">
+            <!-- Header -->
+            <div class="mb-8 mt-4">
+                <h1 class="text-3xl font-black text-primary mb-1">My Progress</h1>
+                <p class="text-sm opacity-60">Complete all 7 parts to finish the survey.</p>
+                <div class="mt-4 flex items-center gap-2">
+                    <progress class="progress progress-primary w-full h-3" :value="totalProgress" max="100"></progress>
+                    <span class="font-mono text-xs font-bold">{{ Math.round(totalProgress) }}%</span>
+                </div>
+            </div>
+
+            <!-- Parts Grid -->
+            <div class="grid grid-cols-1 gap-4 pb-10">
+                <div 
+                    v-for="(part, index) in 7" 
+                    :key="index"
+                    @click="openSet(index)"
+                    class="card bg-base-100 shadow-lg hover:bg-base-200 transition-all active:scale-95 cursor-pointer border border-transparent hover:border-primary/20"
+                    :class="{'border-success bg-success/5': getSetProgress(index) === 100}"
+                >
+                    <div class="card-body p-5 flex flex-row items-center gap-4">
+                        <!-- Icon/Number -->
+                        <div 
+                            class="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-inner shrink-0"
+                            :class="getSetProgress(index) === 100 ? 'bg-success text-success-content' : 'bg-base-300 text-base-content/50'"
+                        >
+                            {{ index + 1 }}
+                        </div>
+                        
+                        <!-- Info -->
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg">Part {{ index + 1 }}</h3>
+                            <div class="flex justify-between text-xs opacity-60 mt-1 mb-1">
+                                <span>{{ getSetFilledCount(index) }}/10 Completed</span>
+                            </div>
+                            <progress 
+                                class="progress w-full h-2" 
+                                :class="getSetProgress(index) === 100 ? 'progress-success' : 'progress-primary'" 
+                                :value="getSetProgress(index)" 
+                                max="100"
+                            ></progress>
+                        </div>
+
+                        <!-- Chevron -->
+                        <div class="opacity-30">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: QUESTIONS (Active Set) -->
+        <div v-else class="flex-1 flex overflow-hidden relative"> 
+            
+            <!-- Sidebar (Micro Nav for Current 10) -->
+            <div class="w-14 h-full flex flex-col items-center bg-base-200 z-20 shrink-0 border-r border-base-content/10 py-4 transition-all duration-300">
+                <!-- Back Button -->
+                <button @click="view = 'dashboard'" class="btn btn-circle btn-xs btn-ghost mb-4 opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </button>
+
+                <div class="text-[9px] font-black tracking-widest uppercase opacity-40 rotate-180 writing-vertical-lr mb-4">
+                    Part {{ activeSetIndex + 1 }}
+                </div>
+
+                <div class="flex-1 w-full flex flex-col items-center gap-2 overflow-y-auto no-scrollbar">
+                    <div 
+                        v-for="card in currentSetCards" 
+                        :key="card.id"
+                        @click="scrollToCard(card.localIndex)"
+                        class="transition-all duration-300 rounded-full flex items-center justify-center text-[10px] font-bold cursor-pointer shrink-0 relative"
+                        :class="{
+                            'w-8 h-8 bg-primary text-primary-content shadow-lg scale-110 z-10': currentLocalIndex === card.localIndex,
+                            'w-6 h-6 bg-success text-success-content opacity-80': card.filled && currentLocalIndex !== card.localIndex,
+                            'w-6 h-6 bg-base-300 text-base-content/30 hover:bg-base-content/50': !card.filled && currentLocalIndex !== card.localIndex
+                        }"
+                    >
+                        <span>{{ card.localIndex + 1 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards Container -->
+            <div 
+                ref="scrollContainer"
+                class="flex-1 h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar relative"
+            >
+                <div class="pb-[20vh] pt-[5vh]">
+                    <div 
+                        v-for="(card, index) in currentSetCards" 
+                        :key="card.id"
+                        :id="'card-' + index"
+                        class="w-full snap-center flex justify-center items-center py-4 px-4 min-h-[70vh]"
+                    >
+                        <div class="card w-full max-w-sm bg-base-100 shadow-xl h-[65vh] flex flex-col overflow-hidden transition-transform duration-300"
+                             :class="{'scale-100 opacity-100 ring-2 ring-primary/20': currentLocalIndex === index, 'scale-95 opacity-50 blur-[1px]': currentLocalIndex !== index}">
+                            
+                            <!-- Image -->
+                            <figure class="h-1/3 w-full relative shrink-0">
+                                <img :src="`https://picsum.photos/seed/${card.id}/400/300`" alt="Card Image" class="w-full h-full object-cover" />
+                                <div class="absolute top-2 right-2 badge badge-neutral font-mono shadow-md">#{{ card.id }}</div>
+                                <div class="absolute bottom-0 w-full bg-gradient-to-t from-base-100 to-transparent h-12"></div>
+                            </figure>
+
+                            <!-- Content -->
+                            <div class="card-body p-5 flex flex-col justify-between h-2/3">
+                                <div>
+                                    <h2 class="card-title text-lg mb-1">{{ card.title }}</h2>
+                                    <p class="text-xs opacity-70 leading-snug line-clamp-3 mt-1">{{ card.description }}</p>
+                                </div>
+
+                                <div class="mt-auto space-y-4">
+                                    <!-- Slider -->
+                                    <div class="w-full bg-base-200 p-3 rounded-box">
+                                        <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider mb-2">
+                                            <span>Score</span>
+                                            <span :class="card.filled ? 'text-primary' : 'text-base-content/50'">{{ card.sliderValue }}%</span>
+                                        </div>
+                                        <input type="range" min="0" max="100" v-model="card.sliderValue" @input="markFilled(card.globalIndex)" class="range range-primary range-xs w-full" />
+                                    </div>
+                                    
+                                    <!-- Action Button (Last Card only) -->
+                                    <div v-if="index === 9" class="w-full">
+                                        <button @click="finishSet" class="btn btn-primary w-full shadow-lg animate-bounce">
+                                            Finish Part {{ activeSetIndex + 1 }}
+                                        </button>
+                                    </div>
+                                    <div v-else class="text-center text-[10px] opacity-30 italic">
+                                        Swipe up
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Congrats Modal -->
+        <div v-if="showCongrats" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div class="card w-full max-w-xs bg-base-100 shadow-2xl scale-100 animate-[bounce_0.5s_ease-out]">
+                <div class="card-body text-center items-center">
+                    <div class="w-16 h-16 bg-success rounded-full flex items-center justify-center mb-2 text-3xl">🎉</div>
+                    <h2 class="card-title text-2xl">Great Job!</h2>
+                    <p class="opacity-70 text-sm">You've completed Part {{ lastCompletedSet + 1 }}</p>
+                    <div class="card-actions mt-4 w-full">
+                        <button @click="closeCongrats" class="btn btn-primary w-full">Continue</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, computed, nextTick, watch } = Vue;
+
+        createApp({
+            setup() {
+                const view = ref('dashboard'); // 'dashboard' or 'questions'
+                const cards = ref([]);
+                const activeSetIndex = ref(0);
+                const currentLocalIndex = ref(0);
+                const scrollContainer = ref(null);
+                const showCongrats = ref(false);
+                const lastCompletedSet = ref(0);
+                
+                const QUESTIONS_PER_SET = 10;
+                const TOTAL_CARDS = 70;
+
+                // --- DATA INIT ---
+                const initCards = () => {
+                    const titles = ["User Experience", "Visual Design", "Interaction", "Accessibility", "Performance", "Color Theory", "Typography"];
+                    const descs = [
+                        "Rate your satisfaction with the current responsiveness of the mobile layout.",
+                        "How would you grade the clarity of the visual hierarchy presented here?",
+                        "Is the interaction smooth and intuitive for your daily usage?",
+                        "Does the contrast ratio meet your reading requirements comfortably?",
+                        "How fast does the content load on your specific network connection?",
+                        "Are the color palettes pleasing and appropriate for the context?",
+                        "Is the text legible and spaced correctly for easy scanning?"
+                    ];
+
+                    for (let i = 1; i <= TOTAL_CARDS; i++) {
+                        cards.value.push({
+                            id: i,
+                            globalIndex: i - 1,
+                            title: titles[(i - 1) % titles.length],
+                            description: descs[(i - 1) % descs.length],
+                            sliderValue: 50,
+                            filled: false
+                        });
+                    }
+                };
+
+                // --- COMPUTED ---
+                
+                // Returns the 10 cards for the currently active set
+                const currentSetCards = computed(() => {
+                    const start = activeSetIndex.value * QUESTIONS_PER_SET;
+                    const end = start + QUESTIONS_PER_SET;
+                    return cards.value.slice(start, end).map((c, i) => ({...c, localIndex: i}));
+                });
+
+                // Total Survey Progress
+                const totalProgress = computed(() => {
+                    if (cards.value.length === 0) return 0;
+                    const filled = cards.value.filter(c => c.filled).length;
+                    return (filled / TOTAL_CARDS) * 100;
+                });
+
+                // --- HELPER FUNCTIONS ---
+
+                const getSetFilledCount = (setIndex) => {
+                    const start = setIndex * QUESTIONS_PER_SET;
+                    const end = start + QUESTIONS_PER_SET;
+                    return cards.value.slice(start, end).filter(c => c.filled).length;
+                };
+
+                const getSetProgress = (setIndex) => {
+                    const count = getSetFilledCount(setIndex);
+                    return (count / QUESTIONS_PER_SET) * 100;
+                };
+
+                const markFilled = (globalIndex) => {
+                    // Update the original source of truth
+                    const card = cards.value.find(c => c.globalIndex === globalIndex);
+                    if (card) card.filled = true;
+                };
+
+                // --- ACTIONS ---
+
+                const openSet = (index) => {
+                    activeSetIndex.value = index;
+                    currentLocalIndex.value = 0;
+                    view.value = 'questions';
+                    
+                    // Reset scroll after view change
+                    nextTick(() => {
+                        setupObserver();
+                        if(scrollContainer.value) scrollContainer.value.scrollTop = 0;
+                    });
+                };
+
+                const finishSet = () => {
+                    lastCompletedSet.value = activeSetIndex.value;
+                    view.value = 'dashboard';
+                    showCongrats.value = true;
+                    triggerConfetti();
+                };
+
+                const closeCongrats = () => {
+                    showCongrats.value = false;
+                };
+
+                const triggerConfetti = () => {
+                    const end = Date.now() + 1000;
+                    const colors = ['#bb0000', '#ffffff'];
+
+                    (function frame() {
+                        confetti({
+                            particleCount: 3,
+                            angle: 60,
+                            spread: 55,
+                            origin: { x: 0 },
+                            colors: colors
+                        });
+                        confetti({
+                            particleCount: 3,
+                            angle: 120,
+                            spread: 55,
+                            origin: { x: 1 },
+                            colors: colors
+                        });
+
+                        if (Date.now() < end) {
+                            requestAnimationFrame(frame);
+                        }
+                    }());
+                };
+
+                const scrollToCard = (localIndex) => {
+                    const el = document.getElementById(`card-${localIndex}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+
+                // --- OBSERVER ---
+                let observer = null;
+                const setupObserver = () => {
+                    if (observer) observer.disconnect();
+                    if (!scrollContainer.value) return;
+
+                    observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const idStr = entry.target.id; // card-0
+                                if(idStr) {
+                                    const index = parseInt(idStr.split('-')[1]);
+                                    currentLocalIndex.value = index;
+                                }
+                            }
+                        });
+                    }, {
+                        root: scrollContainer.value,
+                        threshold: 0.6
+                    });
+
+                    document.querySelectorAll('[id^="card-"]').forEach(el => observer.observe(el));
+                };
+
+                onMounted(() => {
+                    initCards();
+                });
+
+                return {
+                    view,
+                    cards,
+                    activeSetIndex,
+                    currentLocalIndex,
+                    currentSetCards,
+                    totalProgress,
+                    scrollContainer,
+                    showCongrats,
+                    lastCompletedSet,
+                    openSet,
+                    finishSet,
+                    closeCongrats,
+                    markFilled,
+                    scrollToCard,
+                    getSetProgress,
+                    getSetFilledCount
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECharts Grouped Bar Chart</title>
+    <!-- Tailwind CSS for layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind to use class-based dark mode for manual toggling -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- ECharts Library -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Custom radio button styling */
+        .radio-label {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .radio-input:checked + .radio-label {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        /* Animation control button styling */
+        .control-btn {
+            transition: all 0.2s;
+        }
+        .control-btn:hover {
+            transform: translateY(-1px);
+        }
+        .control-btn:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body class="w-full p-0 overflow-hidden bg-transparent dark:bg-[rgb(17,19,25)] transition-colors duration-300">
+
+    <!-- Container -->
+    <div class="w-full p-2 relative flex flex-col items-center">
+        
+        <!-- Theme Toggle Button (Top Right) -->
+        <button id="theme-toggle" class="absolute top-0 right-0 mt-2 mr-2 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 z-10">
+            <svg id="sun-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="moon-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+
+        <!-- Header -->
+        <div class="mb-4 text-center pt-8 md:pt-0">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 transition-colors">Perkembangan Fitrah Manusia</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1 transition-colors">Analisis pertumbuhan Hati, Akal, dan Jasad</p>
+        </div>
+
+        <!-- Controls (Radio Buttons) -->
+        <div class="flex flex-wrap justify-center gap-4 mb-4">
+            <label class="relative">
+                <input type="radio" name="dataset" value="muthaminnah" class="radio-input sr-only" checked>
+                <div class="radio-label px-4 py-1.5 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-full font-medium text-gray-600 dark:text-gray-300 hover:border-blue-400 dark:hover:border-blue-400">
+                    Bakat Jiwa Muthaminnah
+                </div>
+            </label>
+            <label class="relative">
+                <input type="radio" name="dataset" value="lawwamah" class="radio-input sr-only">
+                <div class="radio-label px-4 py-1.5 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-full font-medium text-gray-600 dark:text-gray-300 hover:border-blue-400 dark:hover:border-blue-400">
+                    Bakat Jiwa Lawwamah
+                </div>
+            </label>
+            <label class="relative">
+                <input type="radio" name="dataset" value="ammarah" class="radio-input sr-only">
+                <div class="radio-label px-4 py-1.5 text-sm border-2 border-gray-200 dark:border-gray-600 rounded-full font-medium text-gray-600 dark:text-gray-300 hover:border-blue-400 dark:hover:border-blue-400">
+                    Bakat Jiwa Ammarah
+                </div>
+            </label>
+        </div>
+
+        <!-- Animation Controls -->
+        <div class="flex items-center gap-4 mb-2 bg-white dark:bg-gray-800 p-2 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
+            <button id="btn-prev" class="control-btn p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none" title="Previous Step">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            
+            <button id="btn-play" class="control-btn px-4 py-1.5 rounded-full bg-blue-500 text-white hover:bg-blue-600 focus:outline-none flex items-center gap-2 font-medium text-sm">
+                <svg id="icon-play" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <svg id="icon-pause" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span id="text-play">Play Loop</span>
+            </button>
+
+            <button id="btn-next" class="control-btn p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none" title="Next Step">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+        
+        <!-- Step Indicator -->
+        <div class="mb-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider" id="step-indicator">
+            Full View
+        </div>
+
+        <!-- Chart Container -->
+        <div id="main-chart" class="w-full h-[400px] md:h-[500px]"></div>
+    </div>
+
+    <script>
+        // --- 1. Theme Management ---
+        const htmlElement = document.documentElement;
+        const themeBtn = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (systemPrefersDark) {
+            htmlElement.classList.add('dark');
+        }
+
+        function updateIcons() {
+            const isDark = htmlElement.classList.contains('dark');
+            if (isDark) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
+        
+        updateIcons();
+
+        // --- 2. Initialize ECharts instance ---
+        const chartDom = document.getElementById('main-chart');
+        const myChart = echarts.init(chartDom);
+
+        // --- 3. Define Data Map ---
+        // Growth Logic: 
+        // 1. Thufulah: Hati grows fast (high start), Akal/Jasad slow.
+        // 2. Tamyiz: Akal grows fast (big jump), Hati/Jasad steady.
+        // 3. Murahaqah: Jasad grows fast (big jump), Hati/Akal finish.
+        const rawData = {
+            'muthaminnah': {
+                caps: { hati: 100, akal: 90, jasad: 80 },
+                series: [
+                    { name: 'Hati', data: [50, 75, 98] }, // High start for Hati
+                    { name: 'Akal', data: [20, 70, 88] }, // Big jump in Tamyiz (20->70)
+                    { name: 'Jasad', data: [20, 40, 78] } // Big jump in Murahaqah (40->78)
+                ]
+            },
+            'lawwamah': {
+                caps: { hati: 90, akal: 100, jasad: 80 },
+                series: [
+                    { name: 'Hati', data: [40, 65, 85] }, // High start
+                    { name: 'Akal', data: [30, 75, 95] }, // Big jump in Tamyiz
+                    { name: 'Jasad', data: [20, 40, 75] } // Big jump in Murahaqah
+                ]
+            },
+            'ammarah': {
+                caps: { hati: 80, akal: 90, jasad: 100 },
+                series: [
+                    { name: 'Hati', data: [40, 60, 75] }, // High start
+                    { name: 'Akal', data: [20, 65, 85] }, // Big jump in Tamyiz
+                    { name: 'Jasad', data: [30, 55, 95] } // Big jump in Murahaqah
+                ]
+            }
+        };
+
+        const categories = ['Fase Thufulah', 'Fase Tamyiz', 'Fase Murahaqah'];
+        const barColors = ['#ef4444', '#ec4899', '#854d0e']; 
+
+        // --- 4. Chart Helper Functions ---
+        let currentDatasetKey = 'muthaminnah';
+        let currentStep = 5; // Start at full view (Step 5)
+        let isPlaying = false;
+        let playInterval;
+
+        // Step Descriptions for UI
+        const stepDescriptions = [
+            "Empty (Potential Limits Only)",           // Step 0
+            "Fase Thufulah Filled (Hati Growth Spurt)", // Step 1
+            "Fase Tamyiz starts",                      // Step 2
+            "Fase Tamyiz Filled (Akal Growth Spurt)",  // Step 3
+            "Fase Murahaqah starts",                   // Step 4
+            "Full View (Jasad Growth Spurt)"           // Step 5
+        ];
+
+        function getThemeColors() {
+            const isDark = htmlElement.classList.contains('dark');
+            return {
+                text: isDark ? '#e5e7eb' : '#374151',
+                axis: isDark ? '#6b7280' : '#9ca3af',
+                splitLine: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                tooltipBg: isDark ? 'rgba(50, 50, 50, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                tooltipText: isDark ? '#fff' : '#333',
+                gapColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+            };
+        }
+
+        // Logic to calculate data values based on the current Step (0-5)
+        function calculateSteppedData(fullDataSeries, step) {
+            // fullDataSeries is array [v0, v1, v2] (Thufulah, Tamyiz, Murahaqah)
+            const v0 = fullDataSeries[0];
+            const v1 = fullDataSeries[1];
+            const v2 = fullDataSeries[2];
+
+            switch(step) {
+                case 0: return [0, 0, 0];
+                case 1: return [v0, 0, 0];
+                case 2: return [v0, v0, 0]; // Tamyiz starts at Thufulah's value
+                case 3: return [v0, v1, 0]; // Tamyiz fills to own value
+                case 4: return [v0, v1, v1]; // Murahaqah starts at Tamyiz's value
+                case 5: return [v0, v1, v2]; // Murahaqah fills to own value
+                default: return [v0, v1, v2];
+            }
+        }
+
+        function getOption(datasetKey, step) {
+            const currentData = rawData[datasetKey];
+            const caps = currentData.caps;
+            const colors = getThemeColors();
+            
+            // Calculate data for current step
+            const hatiData = calculateSteppedData(currentData.series[0].data, step);
+            const akalData = calculateSteppedData(currentData.series[1].data, step);
+            const jasadData = calculateSteppedData(currentData.series[2].data, step);
+
+            // Gaps are always calculated against the FULL cap, 
+            // but based on the CURRENT displayed value to ensure the background fills the rest.
+            // Wait, "Gap" + "Value" must = "Cap".
+            const hatiGap = hatiData.map(val => caps.hati - val);
+            const akalGap = akalData.map(val => caps.akal - val);
+            const jasadGap = jasadData.map(val => caps.jasad - val);
+
+            // Update UI Indicator
+            document.getElementById('step-indicator').textContent = stepDescriptions[step];
+
+            return {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: colors.tooltipBg,
+                    textStyle: { color: colors.tooltipText },
+                    axisPointer: { type: 'shadow' },
+                    formatter: function (params) {
+                        let result = params[0].name + '<br/>';
+                        params.forEach(item => {
+                            if (!item.seriesName.includes('Capacity') && item.value > 0) {
+                                result += item.marker + " " + item.seriesName + ": " + item.value + "%<br/>";
+                            }
+                        });
+                        return result;
+                    }
+                },
+                legend: {
+                    data: ['Hati', 'Akal', 'Jasad'],
+                    bottom: 0,
+                    textStyle: { color: colors.text }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    containLabel: true
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        axisTick: { show: false },
+                        data: categories,
+                        axisLabel: { color: colors.text },
+                        axisLine: { lineStyle: { color: colors.axis } }
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: 'Karakter (%)',
+                        min: 0,
+                        max: 100,
+                        nameTextStyle: { color: colors.text },
+                        axisLabel: { color: colors.text },
+                        splitLine: { lineStyle: { color: colors.splitLine } }
+                    }
+                ],
+                series: [
+                    // --- HATI ---
+                    {
+                        name: 'Hati',
+                        type: 'bar',
+                        stack: 'hati',
+                        label: { show: true, position: 'insideTop', color: '#fff', formatter: '{c}%' }, 
+                        data: hatiData,
+                        itemStyle: { color: barColors[0], borderRadius: [0, 0, 4, 4] }
+                    },
+                    {
+                        name: 'Hati Capacity',
+                        type: 'bar',
+                        stack: 'hati',
+                        silent: true,
+                        data: hatiGap,
+                        itemStyle: { color: colors.gapColor, borderRadius: [4, 4, 0, 0] }
+                    },
+                    // --- AKAL ---
+                    {
+                        name: 'Akal',
+                        type: 'bar',
+                        stack: 'akal',
+                        label: { show: true, position: 'insideTop', color: '#fff', formatter: '{c}%' },
+                        data: akalData,
+                        itemStyle: { color: barColors[1], borderRadius: [0, 0, 4, 4] }
+                    },
+                    {
+                        name: 'Akal Capacity',
+                        type: 'bar',
+                        stack: 'akal',
+                        silent: true,
+                        data: akalGap,
+                        itemStyle: { color: colors.gapColor, borderRadius: [4, 4, 0, 0] }
+                    },
+                    // --- JASAD ---
+                    {
+                        name: 'Jasad',
+                        type: 'bar',
+                        stack: 'jasad',
+                        label: { show: true, position: 'insideTop', color: '#fff', formatter: '{c}%' },
+                        data: jasadData,
+                        itemStyle: { color: barColors[2], borderRadius: [0, 0, 4, 4] }
+                    },
+                    {
+                        name: 'Jasad Capacity',
+                        type: 'bar',
+                        stack: 'jasad',
+                        silent: true,
+                        data: jasadGap,
+                        itemStyle: { color: colors.gapColor, borderRadius: [4, 4, 0, 0] }
+                    }
+                ],
+                animationDuration: 1000,
+                animationEasing: 'cubicOut'
+            };
+        }
+
+        // --- 5. Logic Binding ---
+        
+        // Initial Render
+        myChart.setOption(getOption(currentDatasetKey, currentStep));
+
+        // Resize Listener
+        window.addEventListener('resize', () => {
+            myChart.resize();
+        });
+
+        // Theme Toggle
+        themeBtn.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            updateIcons();
+            myChart.setOption(getOption(currentDatasetKey, currentStep));
+        });
+
+        // Dataset Radio
+        const radioButtons = document.querySelectorAll('input[name="dataset"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentDatasetKey = e.target.value;
+                // Don't reset step, just update data for continuity? 
+                // Or reset? Let's keep current step for smoother feel
+                myChart.setOption(getOption(currentDatasetKey, currentStep));
+            });
+        });
+
+        // --- 6. Animation Controls ---
+        
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnPlay = document.getElementById('btn-play');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        const textPlay = document.getElementById('text-play');
+
+        function updatePlayButtonUI() {
+            if (isPlaying) {
+                iconPlay.classList.add('hidden');
+                iconPause.classList.remove('hidden');
+                textPlay.textContent = "Stop";
+                btnPlay.classList.replace('bg-blue-500', 'bg-red-500');
+                btnPlay.classList.replace('hover:bg-blue-600', 'hover:bg-red-600');
+            } else {
+                iconPlay.classList.remove('hidden');
+                iconPause.classList.add('hidden');
+                textPlay.textContent = "Play Loop";
+                btnPlay.classList.replace('bg-red-500', 'bg-blue-500');
+                btnPlay.classList.replace('hover:bg-red-600', 'hover:bg-blue-600');
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < 5) {
+                currentStep++;
+            } else if (isPlaying) {
+                currentStep = 0; // Loop back to start if playing
+            }
+            myChart.setOption(getOption(currentDatasetKey, currentStep));
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                myChart.setOption(getOption(currentDatasetKey, currentStep));
+            }
+        }
+
+        btnPrev.addEventListener('click', () => {
+            // If playing, stop it so user can control manually
+            if (isPlaying) togglePlay();
+            prevStep();
+        });
+
+        btnNext.addEventListener('click', () => {
+            if (isPlaying) togglePlay();
+            nextStep();
+        });
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            updatePlayButtonUI();
+
+            if (isPlaying) {
+                // If we are at the end, restart immediately
+                if (currentStep === 5) {
+                    currentStep = 0;
+                    myChart.setOption(getOption(currentDatasetKey, currentStep));
+                }
+                
+                // Start interval (1500ms allows animation to finish + small pause)
+                playInterval = setInterval(() => {
+                    nextStep();
+                }, 1500);
+            } else {
+                clearInterval(playInterval);
+            }
+        }
+
+        btnPlay.addEventListener('click', togglePlay);
+        
+        // --- 7. Auto Play on Start ---
+        // Trigger auto play logic
+        togglePlay();
+
+    </script>
+</body>
+</html>

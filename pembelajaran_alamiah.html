@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Scatter Chart: Pembelajaran Alamiah</title>
+        <!-- Import Google Fonts -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <!-- Import ECharts -->
+        <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+        <style>
+            body {
+                font-family: "Inter", sans-serif;
+                background-color: #f0fdf4; /* Nuansa Alamiah (Light Green) */
+                color: #1e293b;
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .container {
+                background: white;
+                max-width: 1100px;
+                width: 100%;
+                padding: 30px;
+                border-radius: 16px;
+                box-shadow:
+                    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+
+            header {
+                text-align: center;
+                margin-bottom: 25px;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 20px;
+            }
+
+            h1 {
+                color: #15803d; /* Green 700 */
+                margin: 0 0 10px 0;
+                font-size: 1.75rem;
+            }
+
+            p.subtitle {
+                color: #64748b;
+                margin: 0;
+                font-size: 1rem;
+                line-height: 1.6;
+            }
+
+            #chart-container {
+                width: 100%;
+                height: 650px;
+                margin-top: 20px;
+            }
+
+            .legend-container {
+                display: flex;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                margin-top: 30px;
+                gap: 20px;
+                padding: 20px;
+                background-color: #f8fafc;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+            }
+
+            .legend-column {
+                flex: 1;
+                min-width: 250px;
+            }
+
+            .legend-title {
+                font-weight: 700;
+                margin-bottom: 10px;
+                font-size: 0.9rem;
+                color: #334155;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 8px;
+                font-size: 0.9rem;
+                color: #475569;
+            }
+
+            .icon-box {
+                width: 20px;
+                height: 20px;
+                margin-right: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .color-box {
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+                margin-right: 10px;
+            }
+
+            /* Style untuk Badge di Tooltip */
+            .tooltip-badge {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 4px;
+                color: white;
+                font-size: 10px;
+                font-weight: bold;
+                margin-right: 4px;
+                text-transform: uppercase;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Peta Pembelajaran Alamiah</h1>
+                <p class="subtitle">
+                    Memetakan perjalanan belajar dari usia
+                    <strong>Thufulah</strong> hingga
+                    <strong>Syabab</strong>.<br />
+                    Zona latar belakang menunjukkan fase psikologis perkembangan
+                    anak.
+                </p>
+            </header>
+
+            <div id="chart-container"></div>
+
+            <div class="legend-container">
+                <!-- Legenda Bentuk -->
+                <div class="legend-column">
+                    <div class="legend-title">Jenis Kegiatan (Bentuk)</div>
+                    <div class="legend-item">
+                        <div class="icon-box">
+                            <!-- Icon Terencana (Kotak Kecil di Tengah) -->
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#333"
+                                stroke-width="2"
+                                width="18"
+                                height="18"
+                            >
+                                <path
+                                    d="M3 9H21M7 3V5M17 3V5M6 12H10V16H6V12ZM6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z"
+                                    stroke-linejoin="round"
+                                    stroke-linecap="round"
+                                />
+                            </svg>
+                        </div>
+                        <strong>Terencana</strong> (Kurikulum, Jadwal)
+                    </div>
+                    <div class="legend-item">
+                        <div class="icon-box">
+                            <!-- Icon Tidak Terencana (Silang) -->
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#333"
+                                stroke-width="2"
+                                width="18"
+                                height="18"
+                            >
+                                <path
+                                    d="M10 13L14 17M14 13L10 17M3 9H21M7 3V5M17 3V5M6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z"
+                                    stroke-linejoin="round"
+                                    stroke-linecap="round"
+                                />
+                            </svg>
+                        </div>
+                        <strong>Tidak Terencana</strong> (Kejadian Alami,
+                        Musibah)
+                    </div>
+                </div>
+
+                <!-- Legenda Warna -->
+                <div class="legend-column">
+                    <div class="legend-title">Tingkat Ego (Warna)</div>
+                    <div class="legend-item">
+                        <div
+                            class="color-box"
+                            style="background-color: #4caf50"
+                        ></div>
+                        <strong>Hijau (Ego Rendah):</strong> Menyenangkan,
+                        Fitrah
+                    </div>
+                    <div class="legend-item">
+                        <div
+                            class="color-box"
+                            style="
+                                background-color: #fdd835;
+                                border: 1px solid #eab308;
+                            "
+                        ></div>
+                        <strong>Kuning (Ego Sedang):</strong> Berpikir, Latihan
+                    </div>
+                    <div class="legend-item">
+                        <div
+                            class="color-box"
+                            style="background-color: #f44336"
+                        ></div>
+                        <strong>Merah (Ego Tinggi):</strong> Kedisiplinan,
+                        Tanggung Jawab
+                    </div>
+                </div>
+
+                <!-- Legenda Tags -->
+                <div class="legend-column">
+                    <div class="legend-title">Label Kategori (Tags)</div>
+                    <div class="legend-item">
+                        <span
+                            class="tooltip-badge"
+                            style="background-color: #4caf50"
+                            >Teladan</span
+                        >
+                        <span
+                            class="tooltip-badge"
+                            style="background-color: #4caf50"
+                            >Nikmat</span
+                        >
+                        <span style="font-size: 11px; margin-left: 5px"
+                            >(Positif/Fitrah)</span
+                        >
+                    </div>
+                    <div class="legend-item">
+                        <span
+                            class="tooltip-badge"
+                            style="background-color: #fdd835; color: #333"
+                            >Ilmu</span
+                        >
+                        <span style="font-size: 11px; margin-left: 5px"
+                            >(Wawasan/Kognitif)</span
+                        >
+                    </div>
+                    <div class="legend-item">
+                        <span
+                            class="tooltip-badge"
+                            style="background-color: #f44336"
+                            >Bermakna</span
+                        >
+                        <span
+                            class="tooltip-badge"
+                            style="background-color: #f44336"
+                            >Bakat</span
+                        >
+                        <span style="font-size: 11px; margin-left: 5px"
+                            >(Mendalam/Potensi)</span
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            var dom = document.getElementById("chart-container");
+            var myChart = echarts.init(dom);
+
+            // --- ICON PATHS ---
+            const pathTerencana =
+                "path://M3 9H21M7 3V5M17 3V5M6 12H10V16H6V12ZM6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z";
+            const pathTidakTerencana =
+                "path://M10 13L14 17M14 13L10 17M3 9H21M7 3V5M17 3V5M6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z";
+
+            // --- DATASET & CONFIG ---
+            // Format Baru: [Usia, TingkatEgo, "Nama Kegiatan", "Deskripsi", ["Tag1", "Tag2"]]
+
+            const labelStyle = {
+                show: true,
+                formatter: function (p) {
+                    return p.data.value[2];
+                },
+                fontSize: 11,
+                fontWeight: "bold",
+                color: "#334155",
+                backgroundColor: "rgba(255,255,255,0.7)",
+                borderRadius: 4,
+                padding: [2, 4],
+            };
+
+            const dataTerencana = [
+                // Thufulah
+                [
+                    5,
+                    20,
+                    "Makan Bersama",
+                    "Jadwal makan rutin keluarga",
+                    ["Nikmat", "Teladan"],
+                ],
+                [6, 30, "Mandi Pagi", "Rutinitas kebersihan", ["Teladan"]],
+                // Tamyiz
+                {
+                    value: [
+                        7,
+                        45,
+                        "Shalat 5 Waktu",
+                        "Latihan kedisiplinan utama",
+                        ["Teladan", "Bermakna"],
+                    ],
+                    label: { ...labelStyle, position: "top" },
+                },
+                [8, 50, "Mengerjakan PR", "Tanggung jawab sekolah", ["Ilmu"]],
+                [
+                    9,
+                    40,
+                    "Piket Rumah",
+                    "Membantu orang tua terjadwal",
+                    ["Teladan"],
+                ],
+                // Murahaqah
+                [
+                    11,
+                    60,
+                    "Puasa Ramadhan",
+                    "Menahan lapar & hawa nafsu",
+                    ["Bermakna", "Teladan"],
+                ],
+                {
+                    value: [
+                        13,
+                        80,
+                        "Menjaga Pandangan",
+                        "Disiplin diri yang berat",
+                        ["Bermakna"],
+                    ],
+                    label: { ...labelStyle, position: "top" },
+                },
+                [
+                    12,
+                    55,
+                    "Hafalan Qur'an",
+                    "Target akademik/spiritual",
+                    ["Ilmu", "Nikmat"],
+                ],
+                // Syabab
+                [
+                    17,
+                    90,
+                    "Bekerja/Magang",
+                    "Menghadapi dunia profesional",
+                    ["Bakat", "Ilmu"],
+                ],
+                {
+                    value: [
+                        20,
+                        85,
+                        "Menikah",
+                        "Membangun keluarga",
+                        ["Nikmat", "Bermakna"],
+                    ],
+                    label: { ...labelStyle, position: "right" },
+                },
+                [
+                    18,
+                    75,
+                    "Merantau",
+                    "Kemandirian total",
+                    ["Bermakna", "Bakat"],
+                ],
+                [
+                    19,
+                    50,
+                    "Organisasi",
+                    "Kepemimpinan sosial",
+                    ["Bakat", "Teladan"],
+                ],
+            ];
+
+            const dataTidakTerencana = [
+                // Thufulah
+                {
+                    value: [
+                        2,
+                        10,
+                        "Bermain Tanah",
+                        "Eksplorasi sensori alami",
+                        ["Nikmat", "Bakat"],
+                    ],
+                    label: { ...labelStyle, position: "right" },
+                },
+                [
+                    4,
+                    15,
+                    "Jatuh saat Lari",
+                    "Belajar rasa sakit & bangkit",
+                    ["Bermakna"],
+                ],
+                [
+                    3,
+                    5,
+                    "Mencoret Tembok",
+                    "Ekspresi kreativitas tanpa batas",
+                    ["Bakat", "Nikmat"],
+                ],
+
+                // Kejadian tidak menyenangkan 4-6 th
+                {
+                    value: [
+                        4.5,
+                        80,
+                        "Tantrum",
+                        "Emosi meledak saat keinginan ditolak",
+                        ["Bermakna"],
+                    ],
+                    label: { ...labelStyle, position: "top", color: "#b91c1c" },
+                },
+                {
+                    value: [
+                        5,
+                        65,
+                        "Berebut Mainan",
+                        "Konflik kepemilikan",
+                        ["Bermakna"],
+                    ],
+                    label: { ...labelStyle, position: "right" },
+                },
+                {
+                    value: [
+                        6,
+                        75,
+                        "Kehilangan Barang",
+                        "Rasa sedih mendalam",
+                        ["Bermakna"],
+                    ],
+                    label: { ...labelStyle, position: "bottom" },
+                },
+                {
+                    value: [
+                        5.5,
+                        60,
+                        "Berkelahi",
+                        "Gesekan fisik",
+                        ["Bermakna"],
+                    ],
+                    label: { ...labelStyle, position: "top" },
+                },
+
+                // Tamyiz
+                [
+                    8,
+                    35,
+                    "Sakit Demam",
+                    "Memahami keterbatasan tubuh",
+                    ["Bermakna"],
+                ],
+                [
+                    9,
+                    20,
+                    "Hobi Baru",
+                    "Eksplorasi minat spontan",
+                    ["Bakat", "Nikmat"],
+                ],
+                // Murahaqah
+                {
+                    value: [
+                        12,
+                        75,
+                        "Konflik Teman",
+                        "Manajemen emosi sulit",
+                        ["Bermakna"],
+                    ],
+                    label: { ...labelStyle, position: "bottom" },
+                },
+                [14, 85, "Kekecewaan", "Belajar menerima takdir", ["Bermakna"]],
+                [
+                    11,
+                    45,
+                    "Akil Baligh",
+                    "Perubahan biologis alami",
+                    ["Bermakna", "Nikmat"],
+                ],
+                // Syabab
+                [
+                    16,
+                    60,
+                    "Jatuh Cinta",
+                    "Mengelola perasaan fitrah",
+                    ["Nikmat", "Bermakna"],
+                ],
+                [19, 95, "Musibah", "Ujian mental terberat", ["Bermakna"]],
+                {
+                    value: [
+                        18,
+                        20,
+                        "Road Trip",
+                        "Refreshing & Tadabbur Alam",
+                        ["Nikmat", "Ilmu"],
+                    ],
+                    label: { ...labelStyle, position: "bottom" },
+                },
+            ];
+
+            // Helper untuk warna badge
+            function getBadgeColor(tag) {
+                const lowerTag = tag.toLowerCase();
+                if (lowerTag === "teladan" || lowerTag === "nikmat")
+                    return "#4caf50"; // Hijau
+                if (lowerTag === "ilmu") return "#fdd835"; // Kuning
+                if (lowerTag === "bermakna" || lowerTag === "bakat")
+                    return "#f44336"; // Merah
+                return "#94a3b8"; // Default grey
+            }
+
+            // Helper untuk text color pada badge (khusus kuning butuh text hitam)
+            function getBadgeTextColor(tag) {
+                if (tag.toLowerCase() === "ilmu") return "#333";
+                return "#fff";
+            }
+
+            var option = {
+                backgroundColor: "transparent",
+                grid: {
+                    left: "8%",
+                    right: "12%",
+                    top: "10%",
+                    bottom: "10%",
+                },
+                tooltip: {
+                    trigger: "item",
+                    formatter: function (params) {
+                        let type = params.seriesName;
+                        let egoVal = params.value[1];
+                        let egoText =
+                            egoVal < 40
+                                ? "Rendah (Menyenangkan)"
+                                : egoVal < 70
+                                  ? "Sedang (Berpikir)"
+                                  : "Tinggi (Disiplin/Emosi)";
+                        let tags = params.value[4] || []; // Ambil tags dari index 4
+
+                        // Generate Badge HTML
+                        let badgesHtml = tags
+                            .map((tag) => {
+                                let bgColor = getBadgeColor(tag);
+                                let textColor = getBadgeTextColor(tag);
+                                return `<span style="display:inline-block; margin-right:4px; padding:2px 6px; border-radius:4px; background-color:${bgColor}; color:${textColor}; font-size:10px; font-weight:bold; text-transform:uppercase;">${tag}</span>`;
+                            })
+                            .join("");
+
+                        return `
+                        <div style="font-weight:bold; color: #15803d; font-size:14px; margin-bottom:4px;">${params.value[2]}</div>
+                        <div style="margin-bottom:8px;">${badgesHtml}</div>
+                        <div style="font-size:12px; margin-bottom:5px; color:#475569;">"${params.value[3]}"</div>
+                        <hr style="border:0; border-top:1px solid #eee; margin:5px 0;">
+                        <div style="font-size:12px; line-height:1.5;">
+                            Usia: <strong>${params.value[0]} Tahun</strong><br/>
+                            Tipe: <strong>${type}</strong><br/>
+                            Ego: <strong>${egoText} (${egoVal}%)</strong>
+                        </div>
+                    `;
+                    },
+                    backgroundColor: "rgba(255, 255, 255, 0.98)",
+                    borderColor: "#cbd5e1",
+                    borderWidth: 1,
+                    padding: 12,
+                    textStyle: { color: "#334155" },
+                    extraCssText:
+                        "box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 8px;",
+                },
+                visualMap: {
+                    type: "piecewise",
+                    dimension: 1,
+                    pieces: [
+                        {
+                            min: 70,
+                            max: 100,
+                            label: "Ego Tinggi",
+                            color: "#f44336",
+                        },
+                        {
+                            min: 40,
+                            max: 70,
+                            label: "Ego Sedang",
+                            color: "#fdd835",
+                        },
+                        {
+                            min: 0,
+                            max: 40,
+                            label: "Ego Rendah",
+                            color: "#4caf50",
+                        },
+                    ],
+                    show: false,
+                },
+                xAxis: {
+                    name: "Usia & Fase Perkembangan",
+                    nameLocation: "middle",
+                    nameGap: 35,
+                    min: 0,
+                    max: 22,
+                    splitLine: { show: false },
+                    axisLabel: {
+                        formatter: "{value} Thn",
+                    },
+                },
+                yAxis: {
+                    name: "Tingkat Ego\n(Disiplin/Kesulitan)",
+                    nameLocation: "end",
+                    min: 0,
+                    max: 100,
+                    splitLine: {
+                        lineStyle: { type: "dashed", color: "#e2e8f0" },
+                    },
+                    axisLabel: {
+                        formatter: function (val) {
+                            if (val === 10) return "Rendah";
+                            if (val === 55) return "Sedang";
+                            if (val === 90) return "Tinggi";
+                            return "";
+                        },
+                    },
+                },
+                series: [
+                    {
+                        name: "Terencana",
+                        type: "scatter",
+                        symbol: pathTerencana,
+                        symbolSize: 25,
+                        data: dataTerencana,
+                        itemStyle: {
+                            color: "transparent",
+                            borderColor: "#000",
+                            borderWidth: 2,
+                            shadowBlur: 5,
+                            shadowColor: "rgba(0,0,0,0.2)",
+                        },
+                        markArea: {
+                            silent: true,
+                            itemStyle: {
+                                // color akan di-override di data item
+                                borderWidth: 0,
+                            },
+                            label: {
+                                position: "top",
+                                fontWeight: "bold",
+                                fontSize: 12,
+                                lineHeight: 18,
+                                distance: 10,
+                            },
+                            data: [
+                                [
+                                    {
+                                        name: "Thufulah\n(Cinta kpd Pendidik)",
+                                        xAxis: 0,
+                                        itemStyle: {
+                                            color: "rgba(76, 175, 80, 0.1)",
+                                        },
+                                        label: { color: "#2e7d32" }, // Hijau gelap
+                                    },
+                                    { xAxis: 7 },
+                                ],
+                                [
+                                    {
+                                        name: "Tamyiz\n(Rasa Ingin Tahu)",
+                                        xAxis: 7,
+                                        itemStyle: {
+                                            color: "rgba(253, 216, 53, 0.15)",
+                                        },
+                                        label: { color: "#f57f17" }, // Kuning/Oranye gelap
+                                    },
+                                    { xAxis: 10 },
+                                ],
+                                [
+                                    {
+                                        name: "Murahaqah\n(Mencari Peran)",
+                                        xAxis: 10,
+                                        itemStyle: {
+                                            color: "rgba(244, 67, 54, 0.1)",
+                                        },
+                                        label: { color: "#c62828" }, // Merah gelap
+                                    },
+                                    { xAxis: 15 },
+                                ],
+                                [
+                                    {
+                                        name: "Syabab\n(Bekerja Sesuai Peran)",
+                                        xAxis: 15,
+                                        itemStyle: {
+                                            color: "rgba(33, 150, 243, 0.1)",
+                                        },
+                                        label: { color: "#1565c0" }, // Biru gelap
+                                    },
+                                    { xAxis: 22 },
+                                ],
+                            ],
+                        },
+                    },
+                    {
+                        name: "Tidak Terencana",
+                        type: "scatter",
+                        symbol: pathTidakTerencana,
+                        symbolSize: 25,
+                        data: dataTidakTerencana,
+                        itemStyle: {
+                            color: "transparent",
+                            borderColor: "#000",
+                            borderWidth: 2,
+                            shadowBlur: 5,
+                            shadowColor: "rgba(0,0,0,0.2)",
+                        },
+                    },
+                ],
+            };
+
+            if (option && typeof option === "object") {
+                myChart.setOption(option);
+            }
+
+            window.addEventListener("resize", myChart.resize);
+        </script>
+    </body>
+</html>

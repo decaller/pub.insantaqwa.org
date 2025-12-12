@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Fitrah Development Chart</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            background-color: #ffffff; /* Light Mode */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        #chart-container {
+            width: 100vw;
+            height: 100vh;
+        }
+        /* Top Left Info Panel */
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #333;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            max-width: 320px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: height 0.3s ease;
+            overflow: hidden;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        /* Helper for minimizing panel */
+        .info-panel.minimized {
+            height: 50px; /* Only header visible */
+            overflow: hidden;
+        }
+        .info-panel.minimized .panel-content {
+            display: none;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #111;
+            margin: 0;
+        }
+        p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            color: #666;
+            margin: 0;
+        }
+        
+        .btn-min {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            line-height: 0.5;
+            cursor: pointer;
+            color: #888;
+            padding: 0 5px;
+        }
+        .btn-min:hover { color: #333; }
+
+        .panel-content {
+            /* Container for toggleable content */
+        }
+        
+        /* Checkbox Group */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 4px 0;
+            border-radius: 4px;
+        }
+        .checkbox-input {
+            margin-right: 10px;
+            accent-color: #3b82f6;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #888;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .section-title:first-child {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .legend-info {
+            margin-top: 5px;
+            font-size: 0.75rem;
+            padding-top: 5px; 
+            border-top: 1px solid #eee;
+        }
+        .legend-info div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: inline-block;
+        }
+
+        /* Bottom Control Bar */
+        .control-bar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 50px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #333;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            user-select: none;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: #888;
+            transform: scale(1.1);
+        }
+
+        .btn-text {
+            width: auto;
+            padding: 0 12px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        .btn-play {
+            width: 44px;
+            height: 44px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            font-size: 16px;
+        }
+        .btn-play:hover { background: #2563eb; background-color: #2563eb !important;}
+        
+        .divider {
+            width: 1px; 
+            height: 24px; 
+            background: rgba(0,0,0,0.1); 
+            margin: 0 2px;
+        }
+
+        .step-display {
+            color: #333;
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin: 0 10px;
+            min-width: 80px;
+            text-align: center;
+        }
+    </style>
+    <!-- Import ECharts and ECharts GL -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+</head>
+<body>
+
+    <div class="info-panel" id="infoPanel">
+        <div class="panel-header">
+            <div>
+                <h1>Perkembangan Fitrah</h1>
+                <p>Analisis Karakter vs Usia</p>
+            </div>
+            <button class="btn-min" onclick="togglePanel()" title="Minimize/Expand">_</button>
+        </div>
+
+        <div class="panel-content">
+            <!-- CHECKBOX CONTROLS -->
+            <div class="section-title">Elements</div>
+            <div class="control-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" checked onchange="chartControls.toggleElement('showJasadBar', this.checked)" class="checkbox-input">
+                    Jasad Bar
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" checked onchange="chartControls.toggleElement('showAkalBar', this.checked)" class="checkbox-input">
+                    Akal Bar
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" checked onchange="chartControls.toggleElement('showHatiBar', this.checked)" class="checkbox-input">
+                    Hati Bar
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" onchange="chartControls.toggleElement('showBakatStack', this.checked)" class="checkbox-input">
+                    Bakat Stack Bar
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" onchange="chartControls.toggleElement('showImanLine', this.checked)" class="checkbox-input">
+                    Iman Line
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" onchange="chartControls.toggleElement('showBelajarLine', this.checked)" class="checkbox-input">
+                    Belajar Line
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" onchange="chartControls.toggleElement('showBakatLine', this.checked)" class="checkbox-input">
+                    Bakat Line
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" checked onchange="chartControls.toggleElement('showFase', this.checked)" class="checkbox-input">
+                    Fase
+                </label>
+            </div>
+
+            <!-- Legend Only -->
+            <div class="legend-info">
+                <div style="font-weight: bold; margin-bottom: 5px; color: #555;">Karakter (Lines/Bars)</div>
+                <div><span class="dot" style="background: #84cc16;"></span>Iman / Hati</div>
+                <div><span class="dot" style="background: #facc15;"></span>Belajar / Akal</div>
+                <div><span class="dot" style="background: #f97316;"></span>Bakat / Jasad</div>
+                
+                <div style="font-weight: bold; margin-top: 10px; margin-bottom: 5px; color: #555;">Fase (Phases)</div>
+                <div><span class="dot" style="background: rgba(132, 204, 22, 0.8);"></span>Thufulah (0-7)</div>
+                <div><span class="dot" style="background: rgba(250, 204, 21, 0.8);"></span>Tamyiz (7-10)</div>
+                <div><span class="dot" style="background: rgba(239, 68, 68, 0.8);"></span>Murahaqah (10-15)</div>
+                <div><span class="dot" style="background: rgba(59, 130, 246, 0.8);"></span>Syabab (15-40)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROL BAR -->
+    <div class="control-bar">
+        <button class="btn btn-text" onclick="chartControls.viewXZ()" title="Side View (Timeline)">XZ</button>
+        <button class="btn btn-text" onclick="chartControls.viewYZ()" title="Front View (Stack)">YZ</button>
+        <button class="btn btn-text" onclick="chartControls.viewDef()" title="3D View">3D</button>
+        
+        <div class="divider"></div>
+        
+        <button class="btn" onclick="chartControls.reset()" title="Reset Timeline">⟳</button>
+
+        <div class="divider"></div>
+
+        <button class="btn" onclick="chartControls.start()" title="Start">|&lt;</button>
+        <button class="btn" onclick="chartControls.stepBack()" title="Step Back">&lt;&lt;</button>
+        <button class="btn btn-play" id="playBtn" onclick="chartControls.togglePlay()" title="Play/Pause">&#9658;</button>
+        
+        <div class="step-display" id="stepDisplay">Full View</div>
+        
+        <button class="btn" onclick="chartControls.stepForward()" title="Step Forward">&gt;&gt;</button>
+        <button class="btn" onclick="chartControls.end()" title="End">&gt;|</button>
+    </div>
+
+    <div id="chart-container"></div>
+
+    <script>
+        function togglePanel() {
+            const panel = document.getElementById('infoPanel');
+            panel.classList.toggle('minimized');
+            const btn = panel.querySelector('.btn-min');
+            btn.textContent = panel.classList.contains('minimized') ? '+' : '_';
+        }
+
+        // --- Data Generation Logic ---
+        
+        function getCompositeCurve(age, midpoint, steepness, maxValue) {
+            const logistic = (x) => 1 / (1 + Math.exp(-steepness * (x - midpoint)));
+            const logStart = logistic(0);
+            const logEnd = logistic(40);
+            const logRaw = logistic(age);
+            const logNorm = (logRaw - logStart) / (logEnd - logStart);
+            
+            const linNorm = age / 40;
+            const weightLog = 0.8;
+            const weightLin = 0.2;
+            const combined = (logNorm * weightLog) + (linNorm * weightLin);
+            return combined * maxValue;
+        }
+
+        // Params for Ideal Growth
+        function getParams() {
+            return {
+                pIman: { mid: 3.5, k: 0.6, max: 100 },
+                pBelajar: { mid: 8.5, k: 0.7, max: 100 },
+                pBakat: { mid: 12.5, k: 0.7, max: 100 }
+            };
+        }
+
+        // --- 3D Chart Setup ---
+        
+        var dom = document.getElementById('chart-container');
+        var myChart = echarts.init(dom);
+
+        // Color Palette
+        const colors = {
+            iman: '#84cc16',    // Hati
+            belajar: '#facc15', // Akal
+            bakat: '#f97316',   // Jasad/Bakat
+            
+            bgThufulah: 'rgba(132, 204, 22, 0.4)',   
+            bgTamyiz: 'rgba(250, 204, 21, 0.4)',     
+            bgMurahaqah: 'rgba(239, 68, 68, 0.4)',   
+            bgSyabab: 'rgba(59, 130, 246, 0.4)'      
+        };
+
+        // CONSTANT CATEGORIES (Initialized once)
+        // Indices: Jasad(0), Akal(1), Hati(2), Bakat(3), Phases(4)
+        const categories = ['Jasad', 'Akal', 'Hati', 'Bakat', 'Phases'];
+
+        var option = {
+            backgroundColor: '#ffffff',
+            tooltip: {
+                show: true,
+                backgroundColor: 'rgba(255,255,255,0.9)',
+                textStyle: { color: '#333' },
+                extraCssText: 'box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 4px;',
+                formatter: function(params) {
+                    if (params.seriesName && params.seriesName.includes('Zone')) {
+                         return `<b>${params.seriesName}</b><br>Phase`;
+                    }
+                    if (params.componentType === 'series') {
+                        const age = params.value[0];
+                        let seriesName = params.seriesName;
+                        const val = params.value[2].toFixed(1);
+                        return `<b>${seriesName}</b><br>Age: ${age}<br>Value: ${val}%`;
+                    }
+                    return '';
+                }
+            },
+            xAxis3D: { 
+                type: 'value', 
+                name: 'Age (Years)', 
+                min: 0, 
+                max: 40,
+                interval: 5,
+                inverse: true,
+                axisLabel: { color: '#333', fontSize: 12 }, 
+                axisLine: { lineStyle: { color: '#ccc' } }, 
+                splitLine: { show: false }
+            },
+            yAxis3D: { 
+                type: 'category', 
+                data: categories, 
+                name: 'Category',
+                axisLabel: { color: '#333', fontSize: 14, margin: 8 },
+                axisLine: { lineStyle: { color: '#ccc' } }
+            },
+            zAxis3D: { 
+                type: 'value', 
+                name: 'Growth %', 
+                min: 0, 
+                max: 100,
+                axisLabel: { color: '#333' }, 
+                axisLine: { lineStyle: { color: '#ccc' } }
+            },
+            grid3D: {
+                boxWidth: 200,
+                boxDepth: 120, 
+                boxHeight: 100,
+                light: { 
+                    main: { intensity: 1.2, shadow: false }, 
+                    ambient: { intensity: 0.5 } 
+                },
+                viewControl: {
+                    projection: 'orthographic', 
+                    autoRotate: false,
+                    beta: -90, // Default YZ (Side view for lanes)
+                    alpha: 0,
+                    distance: 220, 
+                    minDistance: 50,
+                    maxDistance: 400,
+                    panMouseButton: 'left',
+                    rotateMouseButton: 'right'
+                }
+            },
+            // Initialize ALL series here to prevent add/remove bugs. 
+            // Data will be updated in updateData.
+            series: [
+                // 0-2: Core Bars
+                { name: 'bar_jasad', type: 'bar3D', data: [], barSize: [5, 10], itemStyle: { color: colors.bakat } },
+                { name: 'bar_akal', type: 'bar3D', data: [], barSize: [5, 10], itemStyle: { color: colors.belajar } },
+                { name: 'bar_hati', type: 'bar3D', data: [], barSize: [5, 10], itemStyle: { color: colors.iman } },
+                
+                // 3-5: Lines
+                { name: 'line_iman', type: 'line3D', data: [], lineStyle: { width: 4, color: colors.iman } },
+                { name: 'line_belajar', type: 'line3D', data: [], lineStyle: { width: 4, color: colors.belajar } },
+                { name: 'line_bakat', type: 'line3D', data: [], lineStyle: { width: 4, color: colors.bakat } },
+                
+                // 6-8: Stack Bars
+                { name: 'stack_hati', type: 'bar3D', stack: 'stack', data: [], barSize: [5, 10], itemStyle: { color: colors.iman } },
+                { name: 'stack_akal', type: 'bar3D', stack: 'stack', data: [], barSize: [5, 10], itemStyle: { color: colors.belajar } },
+                { name: 'stack_jasad', type: 'bar3D', stack: 'stack', data: [], barSize: [5, 10], itemStyle: { color: colors.bakat } },
+                
+                // 9-12: Phases
+                { name: 'phase_thufulah', type: 'bar3D', data: [], barSize: [5, 10], itemStyle: { color: colors.bgThufulah }, shading: 'lambert' },
+                { name: 'phase_tamyiz', type: 'bar3D', data: [], barSize: [5, 10], itemStyle: { color: colors.bgTamyiz }, shading: 'lambert' },
+                { name: 'phase_murahaqah', type: 'bar3D', data: [], barSize: [5, 10], itemStyle: { color: colors.bgMurahaqah }, shading: 'lambert' },
+                { name: 'phase_syabab', type: 'bar3D', data: [], barSize: [5, 10], itemStyle: { color: colors.bgSyabab }, shading: 'lambert' }
+            ]
+        };
+
+        // --- Controller ---
+
+        const chartControls = {
+            // Independent Element States
+            // Initial state: core bars visible (fully grown age 40), lines hidden (age 0), etc.
+            states: {
+                showJasadBar: { visible: true, age: 40 },
+                showAkalBar: { visible: true, age: 40 },
+                showHatiBar: { visible: true, age: 40 },
+                showBakatStack: { visible: false, age: 0 },
+                showImanLine: { visible: false, age: 0 },
+                showBelajarLine: { visible: false, age: 0 },
+                showBakatLine: { visible: false, age: 0 },
+                showFase: { visible: true, age: 40 }
+            },
+            
+            isAnimating: false,
+            animationTimer: null,
+
+            init: function() {
+                myChart.setOption(option); 
+                this.updateData();
+            },
+
+            // --- Toggles & Inputs ---
+            toggleElement: function(key, checked) {
+                this.states[key].visible = checked;
+                
+                if (checked) {
+                    // Only reset age for this specific element to 0
+                    this.states[key].age = 0;
+                    this.startAnimation(); // Start the loop to animate it up
+                } else {
+                    // Just update to hide it
+                    this.updateData();
+                }
+            },
+
+            // --- Control Actions ---
+            reset: function() {
+                this.stopAnimation();
+                // Reset all visible elements to 0
+                for(let key in this.states) {
+                    if(this.states[key].visible) this.states[key].age = 0;
+                }
+                this.updateData();
+            },
+
+            start: function() {
+                this.stopAnimation();
+                // Reset all visible elements to 0 to replay everything
+                for(let key in this.states) {
+                    if(this.states[key].visible) this.states[key].age = 0;
+                }
+                this.startAnimation();
+            },
+            end: function() {
+                this.stopAnimation();
+                // Max out all visible elements
+                for(let key in this.states) {
+                    if(this.states[key].visible) this.states[key].age = 40;
+                }
+                this.updateData();
+            },
+            stepBack: function() {
+                this.stopAnimation();
+                // Step back all visible
+                for(let key in this.states) {
+                    if(this.states[key].visible) this.states[key].age = Math.max(0, this.states[key].age - 1);
+                }
+                this.updateData();
+            },
+            stepForward: function() {
+                this.stopAnimation();
+                // Step forward all visible
+                for(let key in this.states) {
+                    if(this.states[key].visible) this.states[key].age = Math.min(40, this.states[key].age + 1);
+                }
+                this.updateData();
+            },
+            togglePlay: function() {
+                if (this.isAnimating) this.stopAnimation();
+                else this.startAnimation(); // Resumes from current state
+            },
+
+            // --- Views ---
+            viewXZ: function() {
+                myChart.setOption({ grid3D: { viewControl: { alpha: 0, beta: 0 } } });
+            },
+            viewYZ: function() {
+                myChart.setOption({ grid3D: { viewControl: { alpha: 0, beta: -90 } } }); 
+            },
+            viewDef: function() {
+                myChart.setOption({ grid3D: { viewControl: { alpha: 20, beta: 10 } } });
+            },
+
+            // --- Animation ---
+            startAnimation: function() {
+                this.isAnimating = true;
+                document.getElementById('playBtn').innerHTML = '||';
+                
+                if (this.animationTimer) clearInterval(this.animationTimer);
+                
+                this.animationTimer = setInterval(() => {
+                    let anyAnimating = false;
+                    
+                    // Increment age for ANY visible element that is not yet at 40
+                    for(let key in this.states) {
+                        if (this.states[key].visible && this.states[key].age < 40) {
+                            this.states[key].age += 0.5;
+                            if (this.states[key].age > 40) this.states[key].age = 40;
+                            anyAnimating = true;
+                        }
+                    }
+                    
+                    this.updateData();
+                    
+                    if (!anyAnimating) {
+                        this.stopAnimation();
+                    }
+                }, 30); 
+            },
+            stopAnimation: function() {
+                this.isAnimating = false;
+                document.getElementById('playBtn').innerHTML = '&#9658;';
+                clearInterval(this.animationTimer);
+            },
+
+            // --- Core Update ---
+            updateData: function() {
+                const { pIman, pBelajar, pBakat } = getParams(); 
+                
+                // Helper to get max age among visible for display, or average?
+                // Just use one representative or a hardcoded string if mixed.
+                const displayEl = document.getElementById('stepDisplay');
+                // Check if any is animating
+                const animating = Object.values(this.states).some(s => s.visible && s.age < 40);
+                if (!animating) displayEl.innerText = "Full View";
+                else displayEl.innerText = "Animating..."; 
+
+                // Indices
+                const idxJasad = 0;
+                const idxAkal = 1;
+                const idxHati = 2;
+                const idxBakat = 3;
+                const idxPhases = 4;
+
+                // Prepare Data Arrays
+                const dBarJasad = [], dBarAkal = [], dBarHati = [];
+                const dLineIman = [], dLineBelajar = [], dLineBakat = [];
+                const dStackHati = [], dStackAkal = [], dStackJasad = [];
+                const dPhaseThufulah = [], dPhaseTamyiz = [], dPhaseMurahaqah = [], dPhaseSyabab = [];
+
+                // 1. Generate Data based on INDIVIDUAL AGES
+                
+                // -- BARS (0 to 40 loop, scaled by specific age) --
+                for (let year = 0; year <= 40; year++) {
+                    const h = getCompositeCurve(year, pIman.mid, pIman.k, pIman.max);
+                    const a = getCompositeCurve(year, pBelajar.mid, pBelajar.k, pBelajar.max);
+                    const j = getCompositeCurve(year, pBakat.mid, pBakat.k, pBakat.max);
+
+                    // Helper to calc scale for a specific target age
+                    const getScale = (targetAge) => {
+                        if (targetAge >= year) return 1;
+                        if (targetAge >= year - 1) return targetAge - (year - 1);
+                        return 0;
+                    };
+
+                    // Jasad Bar
+                    if (this.states.showJasadBar.visible) {
+                        const s = getScale(this.states.showJasadBar.age);
+                        if(s > 0) dBarJasad.push([year, idxJasad, j * s]);
+                    }
+                    // Akal Bar
+                    if (this.states.showAkalBar.visible) {
+                        const s = getScale(this.states.showAkalBar.age);
+                        if(s > 0) dBarAkal.push([year, idxAkal, a * s]);
+                    }
+                    // Hati Bar
+                    if (this.states.showHatiBar.visible) {
+                        const s = getScale(this.states.showHatiBar.age);
+                        if(s > 0) dBarHati.push([year, idxHati, h * s]);
+                    }
+                    
+                    // Bakat Stack
+                    if (this.states.showBakatStack.visible) {
+                        const s = getScale(this.states.showBakatStack.age);
+                        if (s > 0) {
+                            dStackHati.push([year, idxBakat, (h/3) * s]);
+                            dStackAkal.push([year, idxBakat, (a/3) * s]);
+                            dStackJasad.push([year, idxBakat, (j/3) * s]);
+                        }
+                    }
+                    
+                    // Phase scaling
+                    if (this.states.showFase.visible) {
+                         const s = getScale(this.states.showFase.age);
+                         // Phases are static regions, but we can animate their "height" appearance
+                         // Thufulah 0-7
+                         if(year < 7 && s > 0) dPhaseThufulah.push([year, idxPhases, 100 * s]);
+                         // Tamyiz 7-10
+                         if(year >= 7 && year < 10 && s > 0) dPhaseTamyiz.push([year, idxPhases, 100 * s]);
+                         // Murahaqah 10-15
+                         if(year >= 10 && year < 15 && s > 0) dPhaseMurahaqah.push([year, idxPhases, 100 * s]);
+                         // Syabab 15-40
+                         if(year >= 15 && year <= 40 && s > 0) dPhaseSyabab.push([year, idxPhases, 100 * s]);
+                    }
+                }
+
+                // -- LINES (0 to Specific Age loop) --
+                const maxAge = 40; // Max timeline
+                
+                // Helper to generate line points up to a specific age
+                const genLine = (limitAge, arr, typeIdx, curveFn) => {
+                     for (let t = 0; t <= limitAge; t += 0.5) {
+                         arr.push([t, typeIdx, curveFn(t)]);
+                     }
+                };
+                
+                if (this.states.showImanLine.visible) {
+                    // Pre-calc curve function for speed inside loop? or just call
+                    genLine(this.states.showImanLine.age, dLineIman, idxHati, 
+                        (t) => getCompositeCurve(t, pIman.mid, pIman.k, pIman.max));
+                }
+                if (this.states.showBelajarLine.visible) {
+                    genLine(this.states.showBelajarLine.age, dLineBelajar, idxAkal, 
+                        (t) => getCompositeCurve(t, pBelajar.mid, pBelajar.k, pBelajar.max));
+                }
+                if (this.states.showBakatLine.visible) {
+                    genLine(this.states.showBakatLine.age, dLineBakat, idxBakat, 
+                        (t) => getCompositeCurve(t, pBakat.mid, pBakat.k, pBakat.max));
+                }
+
+                const commonOpacity = 0.5;
+
+                const seriesUpdate = [
+                    { name: 'bar_jasad', data: dBarJasad, itemStyle: { opacity: commonOpacity } },
+                    { name: 'bar_akal', data: dBarAkal, itemStyle: { opacity: commonOpacity } },
+                    { name: 'bar_hati', data: dBarHati, itemStyle: { opacity: commonOpacity } },
+                    
+                    { name: 'line_iman', data: dLineIman },
+                    { name: 'line_belajar', data: dLineBelajar },
+                    { name: 'line_bakat', data: dLineBakat },
+                    
+                    { name: 'stack_hati', data: dStackHati, itemStyle: { opacity: commonOpacity } },
+                    { name: 'stack_akal', data: dStackAkal, itemStyle: { opacity: commonOpacity } },
+                    { name: 'stack_jasad', data: dStackJasad, itemStyle: { opacity: commonOpacity } },
+                    
+                    { name: 'phase_thufulah', data: dPhaseThufulah },
+                    { name: 'phase_tamyiz', data: dPhaseTamyiz },
+                    { name: 'phase_murahaqah', data: dPhaseMurahaqah },
+                    { name: 'phase_syabab', data: dPhaseSyabab }
+                ];
+
+                myChart.setOption({ series: seriesUpdate });
+            }
+        };
+
+        window.chartControls = chartControls; 
+        chartControls.init();
+        window.addEventListener('resize', () => myChart.resize());
+    </script>
+</body>
+</html>
