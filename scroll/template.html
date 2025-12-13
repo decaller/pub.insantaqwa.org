@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="id" class="scroll-smooth">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Analisis Karakter - Scrollytelling</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+        <script src="https://unpkg.com/@phosphor-icons/web"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+        
+        <style>
+            body { 
+                font-family: 'Plus Jakarta Sans', sans-serif; 
+                background-color: #f8fafc;
+                color: #1e293b;
+            }
+
+            /* --- SCROLL SNAP CONFIGURATION --- */
+            html {
+                scroll-snap-type: y mandatory;
+            }
+
+            .snap-point {
+                scroll-snap-align: center;
+                scroll-snap-stop: always;
+            }
+
+            .scroll-section {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                transition: opacity 0.5s ease;
+                padding: 1.5rem;
+                /* Mobile Default: Align content to bottom so chart (at top) is visible */
+                justify-content: flex-end;
+                padding-bottom: 8rem; /* Space for bottom buttons */
+            }
+
+            @media (min-width: 1024px) {
+                .scroll-section {
+                    /* Desktop: Center content vertically */
+                    justify-content: center;
+                    padding: 2rem;
+                    padding-bottom: 2rem;
+                }
+            }
+
+            .glass-panel {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.6);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+            
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        </style>
+    </head>
+    <body class="overflow-x-hidden">
+
+        <!-- FLOATING NAVIGATION BUTTONS (BOTTOM CENTER) -->
+        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 p-2 rounded-full glass-panel">
+            <button onclick="navigate(-1)" class="p-3 bg-white/50 text-indigo-600 rounded-full hover:bg-white hover:scale-110 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Scroll Up">
+                <i class="ph-bold ph-caret-up text-xl"></i>
+            </button>
+            <div class="h-6 w-px bg-slate-300"></div>
+            <button onclick="navigate(1)" class="p-3 bg-indigo-600 text-white rounded-full shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-110 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ring-offset-2" aria-label="Scroll Down">
+                <i class="ph-bold ph-caret-down text-xl"></i>
+            </button>
+        </div>
+
+        <div class="relative w-full">
+            
+            <!-- LAYOUT CONTAINER -->
+            <div class="lg:flex">
+
+                <!-- LEFT COLUMN: SCROLLABLE TEXT (Z-INDEX HIGH) -->
+                <div class="w-full lg:w-1/3 relative z-10 pointer-events-none">
+                    
+                    <!-- Header Section (Snap Point 0) -->
+                    <div id="header-section" class="snap-point min-h-screen flex flex-col justify-center items-center lg:items-start p-8 pointer-events-auto">
+                        <div class="max-w-md w-full glass-panel p-6 rounded-2xl lg:bg-transparent lg:shadow-none lg:backdrop-filter-none lg:border-none">
+                            <div class="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-indigo-500 uppercase bg-indigo-50 rounded-full">
+                                Laporan Analisis
+                            </div>
+                            <h1 class="text-3xl lg:text-5xl font-extrabold text-slate-900 mb-4 leading-tight">
+                                Pemetaan <br/>
+                                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">Potensi Manusia</span>
+                            </h1>
+                            <p class="text-slate-500 text-lg">
+                                Eksplorasi dimensi Ruh, Jasad, dan Jiwa.
+                            </p>
+                            <div class="mt-8 flex justify-center lg:justify-start animate-bounce text-slate-400 cursor-pointer" onclick="navigate(1)">
+                                <i class="ph-bold ph-arrow-down text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTAINER FOR DYNAMIC SECTIONS -->
+                    <div id="sections-container" class="pointer-events-auto">
+                        <!-- Sections will be injected here by JS -->
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: STICKY CHART (Z-INDEX LOW) -->
+                <div class="fixed top-0 left-0 w-full h-screen lg:static lg:w-2/3 lg:h-screen lg:sticky lg:top-0 bg-slate-50 border-l border-slate-200 shadow-inner z-0">
+                    <div id="chart-container" class="w-full h-full"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+            // ==========================================
+            // 1. DATA PREPARATION (UNCHANGED)
+            // ==========================================
+            
+            const palettes = {
+                blue: ["#E3F2FD", "#BBDEFB", "#90CAF9", "#64B5F6", "#42A5F5", "#2196F3", "#1E88E5", "#1976D2", "#1565C0", "#0D47A1"],
+                brown: ["#EFEBE9", "#D7CCC8", "#BCAAA4", "#A1887F", "#8D6E63", "#795548", "#6D4C41", "#5D4037", "#4E342E", "#3E2723"],
+                red: ["#ffcdd2", "#ef9a9a", "#e57373", "#ef5350", "#f44336", "#e53935", "#d32f2f"], 
+                yellow: ["#fff9c4", "#fff59d", "#fff176", "#ffee58", "#ffeb3b", "#fdd835", "#fbc02d"], 
+                green: ["#c8e6c9", "#a5d6a7", "#81c784", "#66bb6a", "#4caf50", "#43a047", "#388e3c"]  
+            };
+
+            function getColor(type, index) {
+                const palette = palettes[type] || palettes.blue;
+                return palette[index % palette.length];
+            }
+
+            const rawDataGroups = [
+                // RUH Data
+                [
+                    { name: "Himmah", score: 40, groupId: "Berambisi_Bekerja keras_Karsa_Introvert_ruh" },
+                    { name: "Ihsaan", score: 30, groupId: "Berambisi_Bekerja keras_Karsa_Introvert_ruh" },
+                    { name: "‘izzah", score: 40, groupId: "Berwibawa_Bekerja keras_Karsa_Introvert_ruh" },
+                    { name: "Waqaar", score: 50, groupId: "Berwibawa_Bekerja keras_Karsa_Introvert_ruh" },
+                    { name: "‘aziimah", score: 45, groupId: "Giat bekerja_Bekerja keras_Karsa_Introvert_ruh" },
+                    { name: "Nasyaath", score: 50, groupId: "Giat bekerja_Bekerja keras_Karsa_Introvert_ruh" },
+                    { name: "Firaasah", score: 40, groupId: "Suka berpikir imajinatif_Berpikir_Cipta_Introvert_ruh" },
+                    { name: "Nubl", score: 30, groupId: "Suka berpikir imajinatif_Berpikir_Cipta_Introvert_ruh" },
+                    { name: "Husnuzhan", score: 45, groupId: "Suka berpikir positif_Berpikir_Cipta_Introvert_ruh" },
+                    { name: "Dzakaa’", score: 30, groupId: "Suka berpikir analitis_Berpikir_Cipta_Introvert_ruh" },
+                    { name: "Hikmah", score: 30, groupId: "Suka berpikir analitis_Berpikir_Cipta_Introvert_ruh" },
+                    { name: "Shidq", score: 45, groupId: "Suka apa adanya_Berperasaan_Rasa_Introvert_ruh" },
+                    { name: "‘iffah", score: 50, groupId: "Pendiam_Berperasaan_Rasa_Introvert_ruh" },
+                    { name: "Shamt", score: 40, groupId: "Pendiam_Berperasaan_Rasa_Introvert_ruh" },
+                    { name: "Hayaa’", score: 50, groupId: "Suka merendah_Berperasaan_Rasa_Introvert_ruh" },
+                    { name: "Qanaa'ah", score: 40, groupId: "Suka merendah_Berperasaan_Rasa_Introvert_ruh" },
+                    { name: "Shabr", score: 35, groupId: "Suka merendah_Berperasaan_Rasa_Introvert_ruh" },
+                    { name: "Syajaa’ah", score: 50, groupId: "Suka menguasai_Mempengaruhi_Karsa_Extrovert_ruh" },
+                    { name: "Ghairah", score: 45, groupId: "Suka menguasai_Mempengaruhi_Karsa_Extrovert_ruh" },
+                    { name: "Munaafasah", score: 35, groupId: "Suka menguasai_Mempengaruhi_Karsa_Extrovert_ruh" },
+                    { name: "Nashiihah", score: 45, groupId: "Suka memotivasi_Mempengaruhi_Karsa_Extrovert_ruh" },
+                    { name: "Fashaahah", score: 35, groupId: "Suka memotivasi_Mempengaruhi_Karsa_Extrovert_ruh" },
+                    { name: "Nushrah", score: 35, groupId: "Suka menolong_Mempengaruhi_Karsa_Extrovert_ruh" },
+                    { name: "Juud", score: 45, groupId: "Suka menolong_Mempengaruhi_Karsa_Extrovert_ruh" },
+                    { name: "Ta'aawun", score: 30, groupId: "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert_ruh" },
+                    { name: "Ulfah", score: 40, groupId: "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert_ruh" },
+                    { name: "‘adaalah", score: 30, groupId: "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert_ruh" },
+                    { name: "Wafaa'", score: 45, groupId: "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert_ruh" },
+                    { name: "Muzaah", score: 40, groupId: "Suka membuat hubungan baru_Bekerjasama_Cipta_Extrovert_ruh" },
+                    { name: "Basyaasyah", score: 50, groupId: "Suka membuat hubungan baru_Bekerjasama_Cipta_Extrovert_ruh" },
+                    { name: "Rifq", score: 50, groupId: "Suka mengeratkan hubungan yang sudah ada_Bekerjasama_Cipta_Extrovert_ruh" },
+                    { name: "Rahmah", score: 45, groupId: "Suka mengeratkan hubungan yang sudah ada_Bekerjasama_Cipta_Extrovert_ruh" },
+                    { name: "Mahabbah", score: 30, groupId: "Suka melayani dengan cara memberi_Melayani_Rasa_Extrovert_ruh" },
+                    { name: "Itsaar", score: 35, groupId: "Suka melayani dengan cara memberi_Melayani_Rasa_Extrovert_ruh" },
+                    { name: "Kitmaanus sirr", score: 50, groupId: "Suka melayani dengan cara menjaga_Melayani_Rasa_Extrovert_ruh" },
+                    { name: "Satr", score: 30, groupId: "Suka melayani dengan cara menjaga_Melayani_Rasa_Extrovert_ruh" },
+                    { name: "Amaanah", score: 35, groupId: "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert_ruh" },
+                    { name: "Anaah", score: 40, groupId: "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert_ruh" },
+                    { name: "Hilm", score: 35, groupId: "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert_ruh" },
+                    { name: "Tawaadhu'", score: 35, groupId: "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert_ruh" },
+                ],
+                // JASAD Data
+                [
+                    { name: "Himmah", score: 40, groupId: "Berambisi_Bekerja keras_Karsa_Introvert_jasad" },
+                    { name: "Ihsaan", score: 30, groupId: "Berambisi_Bekerja keras_Karsa_Introvert_jasad" },
+                    { name: "‘izzah", score: 40, groupId: "Berwibawa_Bekerja keras_Karsa_Introvert_jasad" },
+                    { name: "Waqaar", score: 50, groupId: "Berwibawa_Bekerja keras_Karsa_Introvert_jasad" },
+                    { name: "‘aziimah", score: 45, groupId: "Giat bekerja_Bekerja keras_Karsa_Introvert_jasad" },
+                    { name: "Nasyaath", score: 50, groupId: "Giat bekerja_Bekerja keras_Karsa_Introvert_jasad" },
+                    { name: "Firaasah", score: 40, groupId: "Suka berpikir imajinatif_Berpikir_Cipta_Introvert_jasad" },
+                    { name: "Nubl", score: 30, groupId: "Suka berpikir imajinatif_Berpikir_Cipta_Introvert_jasad" },
+                    { name: "Husnuzhan", score: 45, groupId: "Suka berpikir positif_Berpikir_Cipta_Introvert_jasad" },
+                    { name: "Dzakaa’", score: 30, groupId: "Suka berpikir analitis_Berpikir_Cipta_Introvert_jasad" },
+                    { name: "Hikmah", score: 30, groupId: "Suka berpikir analitis_Berpikir_Cipta_Introvert_jasad" },
+                    { name: "Shidq", score: 45, groupId: "Suka apa adanya_Berperasaan_Rasa_Introvert_jasad" },
+                    { name: "‘iffah", score: 50, groupId: "Pendiam_Berperasaan_Rasa_Introvert_jasad" },
+                    { name: "Shamt", score: 40, groupId: "Pendiam_Berperasaan_Rasa_Introvert_jasad" },
+                    { name: "Hayaa’", score: 50, groupId: "Suka merendah_Berperasaan_Rasa_Introvert_jasad" },
+                    { name: "Qanaa'ah", score: 40, groupId: "Suka merendah_Berperasaan_Rasa_Introvert_jasad" },
+                    { name: "Shabr", score: 35, groupId: "Suka merendah_Berperasaan_Rasa_Introvert_jasad" },
+                    { name: "Syajaa’ah", score: 50, groupId: "Suka menguasai_Mempengaruhi_Karsa_Extrovert_jasad" },
+                    { name: "Ghairah", score: 45, groupId: "Suka menguasai_Mempengaruhi_Karsa_Extrovert_jasad" },
+                    { name: "Munaafasah", score: 35, groupId: "Suka menguasai_Mempengaruhi_Karsa_Extrovert_jasad" },
+                    { name: "Nashiihah", score: 45, groupId: "Suka memotivasi_Mempengaruhi_Karsa_Extrovert_jasad" },
+                    { name: "Fashaahah", score: 35, groupId: "Suka memotivasi_Mempengaruhi_Karsa_Extrovert_jasad" },
+                    { name: "Nushrah", score: 35, groupId: "Suka menolong_Mempengaruhi_Karsa_Extrovert_jasad" },
+                    { name: "Juud", score: 45, groupId: "Suka menolong_Mempengaruhi_Karsa_Extrovert_jasad" },
+                    { name: "Ta'aawun", score: 30, groupId: "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert_jasad" },
+                    { name: "Ulfah", score: 40, groupId: "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert_jasad" },
+                    { name: "‘adaalah", score: 30, groupId: "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert_jasad" },
+                    { name: "Wafaa'", score: 45, groupId: "Suka menggunakan hubungan yang ada_Bekerjasama_Cipta_Extrovert_jasad" },
+                    { name: "Muzaah", score: 40, groupId: "Suka membuat hubungan baru_Bekerjasama_Cipta_Extrovert_jasad" },
+                    { name: "Basyaasyah", score: 50, groupId: "Suka membuat hubungan baru_Bekerjasama_Cipta_Extrovert_jasad" },
+                    { name: "Rifq", score: 50, groupId: "Suka mengeratkan hubungan yang sudah ada_Bekerjasama_Cipta_Extrovert_jasad" },
+                    { name: "Rahmah", score: 45, groupId: "Suka mengeratkan hubungan yang sudah ada_Bekerjasama_Cipta_Extrovert_jasad" },
+                    { name: "Mahabbah", score: 30, groupId: "Suka melayani dengan cara memberi_Melayani_Rasa_Extrovert_jasad" },
+                    { name: "Itsaar", score: 35, groupId: "Suka melayani dengan cara memberi_Melayani_Rasa_Extrovert_jasad" },
+                    { name: "Kitmaanus sirr", score: 50, groupId: "Suka melayani dengan cara menjaga_Melayani_Rasa_Extrovert_jasad" },
+                    { name: "Satr", score: 30, groupId: "Suka melayani dengan cara menjaga_Melayani_Rasa_Extrovert_jasad" },
+                    { name: "Amaanah", score: 35, groupId: "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert_jasad" },
+                    { name: "Anaah", score: 40, groupId: "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert_jasad" },
+                    { name: "Hilm", score: 35, groupId: "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert_jasad" },
+                    { name: "Tawaadhu'", score: 35, groupId: "Suka melayani dengan cara mengalah_Melayani_Rasa_Extrovert_jasad" },
+                ],
+            ];
+
+            // 1. Basic Lists
+            const ruhList = rawDataGroups[0].map((item, index) => ({
+                name: item.name,
+                value: item.score,
+                itemStyle: { color: getColor("blue", index) },
+            }));
+
+            const jasadList = rawDataGroups[1].map((item, index) => ({
+                name: item.name,
+                value: item.score,
+                itemStyle: { color: getColor("brown", index) },
+            }));
+
+            // 2. Combined List with Sorting
+            const combinedList = rawDataGroups[0]
+                .map((item, index) => {
+                    const jasadItem = rawDataGroups[1].find(j => j.name === item.name) || { score: 0 };
+                    const mergedValue = item.score + jasadItem.score;
+                    const groupString = item.groupId;
+                    let itemColor = "#ccc";
+                    let sortIndex = 99;
+
+                    if (groupString.includes("Karsa")) {
+                        itemColor = getColor("red", index);
+                        sortIndex = 1;
+                    } else if (groupString.includes("Cipta")) {
+                        itemColor = getColor("yellow", index);
+                        sortIndex = 2;
+                    } else if (groupString.includes("Rasa")) {
+                        itemColor = getColor("green", index);
+                        sortIndex = 3;
+                    }
+
+                    return {
+                        name: item.name,
+                        value: mergedValue,
+                        itemStyle: { color: itemColor },
+                        sortIndex: sortIndex,
+                    };
+                })
+                .sort((a, b) => a.sortIndex - b.sortIndex);
+
+            // 3. Aggregate Data
+            let ammarahSum = 0;
+            let lawwamahSum = 0;
+            let muthmainnahSum = 0;
+            let countKarsa = 0;
+            let countCipta = 0;
+            let countRasa = 0;
+
+            combinedList.forEach(item => {
+                if(item.sortIndex === 1) { ammarahSum += item.value; countKarsa++; }
+                if(item.sortIndex === 2) { lawwamahSum += item.value; countCipta++; }
+                if(item.sortIndex === 3) { muthmainnahSum += item.value; countRasa++; }
+            });
+
+            const jiwaOuterData = [
+                { value: ammarahSum, name: 'Jiwa Ammarah\n(Karsa)', itemStyle: { color: '#ef5350' } },
+                { value: lawwamahSum, name: 'Jiwa Lawwamah\n(Cipta)', itemStyle: { color: '#fdd835' } },
+                { value: muthmainnahSum, name: 'Jiwa Muthmainnah\n(Rasa)', itemStyle: { color: '#66bb6a' } }
+            ];
+
+            // ==========================================
+            // 2. CHART GENERATOR FUNCTIONS
+            // ==========================================
+            const isMobile = () => window.innerWidth < 1024; // Use 1024 breakpoint
+
+            const baseSeriesConfig = {
+                type: "pie",
+                emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: "rgba(0, 0, 0, 0.5)" } },
+                label: { show: true, position: "outside", formatter: "{b}", fontSize: 10 },
+                labelLine: { show: true, length: 15 },
+            };
+
+            // VIEW 1: Ruh dan Jasad
+            function getSplitViewOption() {
+                const mobile = isMobile();
+                return {
+                    title: [
+                        { text: "Dimensi Ruh (Biru)", left: mobile ? "50%" : "25%", top: mobile ? "5%" : "20%", textAlign: "center", textStyle: { fontSize: 16 } },
+                        { text: "Dimensi Jasad (Coklat)", left: mobile ? "50%" : "75%", top: mobile ? "25%" : "20%", textAlign: "center", textStyle: { fontSize: 16 } },
+                    ],
+                    tooltip: { trigger: "item", formatter: "{b}: {c}" },
+                    grid: { show: false }, 
+                    series: [
+                        {
+                            ...baseSeriesConfig,
+                            id: "ruh", name: "Ruh",
+                            radius: ["25%", "45%"], // Slightly smaller radius on mobile to fit
+                            center: mobile ? ["50%", "15%"] : ["25%", "55%"],
+                            data: ruhList,
+                            universalTransition: { enabled: true },
+                        },
+                        {
+                            ...baseSeriesConfig,
+                            id: "jasad", name: "Jasad",
+                            radius: ["25%", "45%"],
+                            center: mobile ? ["50%", "45%"] : ["75%", "55%"], // Stacked on mobile
+                            data: jasadList,
+                            universalTransition: { enabled: true },
+                        },
+                    ],
+                    animationDurationUpdate: 1200,
+                };
+            }
+
+            // VIEW 2: 3 Jiwa
+            function getJiwaViewOption() {
+                const mobile = isMobile();
+                return {
+                    title: { text: "3 Jiwa (Nested Pie)", left: "center", top: mobile ? "5%" : "5%", textStyle: { fontSize: 20, fontWeight: 'bold' } },
+                    tooltip: { trigger: "item", formatter: "{b}: {c}" },
+                    series: [
+                        {
+                            ...baseSeriesConfig,
+                            id: "combined",
+                            name: "Detail",
+                            radius: ["0%", mobile ? "25%" : "40%"],
+                            center: ["50%", mobile ? "35%" : "55%"],
+                            data: combinedList,
+                            label: { show: !mobile, position: 'inner', fontSize: 9, formatter: "{b}" },
+                            labelLine: { show: false },
+                            universalTransition: { enabled: true, seriesKey: ["ruh", "jasad"] },
+                        },
+                        {
+                            type: 'pie',
+                            name: 'Jiwa Group',
+                            radius: [mobile ? "30%" : "45%", mobile ? "55%" : "70%"],
+                            center: ["50%", mobile ? "35%" : "55%"],
+                            data: jiwaOuterData,
+                            label: { 
+                                show: true, 
+                                position: 'outside', 
+                                formatter: '{b}\n{d}%', 
+                                fontWeight: 'bold',
+                                fontSize: 12
+                            },
+                            itemStyle: {
+                                borderRadius: 4,
+                                borderColor: '#fff',
+                                borderWidth: 2
+                            }
+                        }
+                    ],
+                    animationDurationUpdate: 1200,
+                };
+            }
+
+            // VIEW 3: Kecerdasan
+            function getKecerdasanViewOption() {
+                const categories = combinedList.map((i) => i.name);
+                const mobile = isMobile();
+                
+                return {
+                    title: { text: "Kecerdasan & Aqidah", left: "center", top: "5%", textStyle: { fontSize: 18 } },
+                    tooltip: { trigger: "item", formatter: "{b}: {c}" },
+                    grid: { left: "5%", right: "5%", bottom: mobile ? "55%" : "15%", top: "15%", containLabel: true },
+                    xAxis: {
+                        type: "category",
+                        data: categories,
+                        axisLabel: { interval: 0, rotate: 45, fontSize: 10 },
+                        z: 10
+                    },
+                    yAxis: { type: "value" },
+                    series: [
+                        {
+                            type: "bar",
+                            id: "combined",
+                            name: "Nilai",
+                            data: combinedList,
+                            universalTransition: { enabled: true, seriesKey: ["ruh", "jasad"] },
+                            itemStyle: { borderRadius: [5, 5, 0, 0] },
+                            label: { show: true, position: "top", fontSize: 10 },
+                            markArea: {
+                                silent: true,
+                                itemStyle: { opacity: 0.1 },
+                                label: { position: 'top', color: '#333', fontSize: 14, fontWeight: 'bold' },
+                                data: [
+                                    [{ name: 'Fisik', xAxis: 0, itemStyle: { color: 'red' } }, { xAxis: countKarsa - 1 }],
+                                    [{ name: 'Akal', xAxis: countKarsa, itemStyle: { color: 'yellow' } }, { xAxis: countKarsa + countCipta - 1 }],
+                                    [{ name: 'Hati', xAxis: countKarsa + countCipta, itemStyle: { color: 'green' } }, { xAxis: categories.length - 1 }]
+                                ]
+                            },
+                            markLine: {
+                                symbol: ['none', 'none'],
+                                label: { show: true, position: 'start', formatter: 'Aqidah (SQ) - 20', backgroundColor: '#4ade80', color: '#fff', padding: [4, 8], borderRadius: 4 },
+                                lineStyle: { color: '#22c55e', width: 4, type: 'solid' },
+                                data: [{ yAxis: 20 }]
+                            }
+                        },
+                    ],
+                    animationDurationUpdate: 1200,
+                };
+            }
+
+            // ==========================================
+            // 3. SCROLLYTELLING CONFIGURATION
+            // ==========================================
+            
+            // Define the story sections content here
+            const storyContent = [
+                {
+                    title: "Dualitas Manusia",
+                    subtitle: "Ruh & Jasad",
+                    desc: "Setiap manusia terdiri dari dua elemen dasar: Ruh yang bersifat spiritual dan Jasad yang bersifat fisik. Pada diagram ini, kita melihat keseimbangan antara sifat-sifat Ruh (Biru) dan Jasad (Coklat).",
+                    generator: getSplitViewOption
+                },
+                {
+                    title: "Tiga Jiwa Utama",
+                    subtitle: "Ammarah, Lawwamah, Muthmainnah",
+                    desc: "Ketika Ruh dan Jasad bersatu, mereka membentuk Jiwa. Jiwa ini terbagi menjadi tiga kecenderungan: <br/><strong class='text-red-500'>Ammarah (Karsa)</strong> yang mendorong ambisi, <strong class='text-yellow-500'>Lawwamah (Cipta)</strong> yang analitis, dan <strong class='text-green-500'>Muthmainnah (Rasa)</strong> yang tenang.",
+                    generator: getJiwaViewOption
+                },
+                {
+                    title: "Kecerdasan Holistik",
+                    subtitle: "PQ, IQ, EQ, SQ",
+                    desc: "Dari struktur jiwa tersebut, kita bisa memetakan kecerdasan. <br/>Grafik batang ini menunjukkan distribusi potensi Anda dalam Fisik (PQ), Intelektual (IQ), dan Emosional (EQ), yang semuanya dinaungi oleh Aqidah Spiritual (SQ).",
+                    generator: getKecerdasanViewOption
+                },
+                {
+                    title: "Refleksi Dominasi",
+                    subtitle: "Warna Jiwa Anda",
+                    desc: "Mari kita kembali melihat komposisi Jiwa Anda. Perhatikan dominasi warna pada grafik lingkaran. <br/>Jika Merah mendominasi, Anda adalah tipe penggerak. Jika Kuning, Anda pemikir. Jika Hijau, Anda perasa.",
+                    generator: getJiwaViewOption
+                },
+                {
+                    title: "Kekuatan Utama",
+                    subtitle: "Potensi Tersembunyi",
+                    desc: "Melihat kembali data batang, perhatikan puncaknya. Nilai tertinggi menunjukkan kekuatan alami Anda yang paling mudah dikembangkan untuk mencapai kesuksesan.",
+                    generator: getKecerdasanViewOption
+                }
+            ];
+
+            // ==========================================
+            // 4. APP LOGIC (SCROLL & RENDER)
+            // ==========================================
+
+            const chartDom = document.getElementById("chart-container");
+            const myChart = echarts.init(chartDom);
+            const sectionsContainer = document.getElementById("sections-container");
+
+            // 1. Generate HTML Sections
+            storyContent.forEach((story, index) => {
+                const section = document.createElement("div");
+                section.className = "scroll-section snap-point";
+                section.dataset.index = index;
+                section.id = `section-${index}`;
+                
+                section.innerHTML = `
+                    <div class="glass-panel rounded-2xl p-6 lg:p-8 max-w-lg mx-auto w-full transition-all duration-300 hover:scale-105 border border-white/50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold text-sm">
+                                ${index + 1}
+                            </span>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">${story.subtitle}</span>
+                        </div>
+                        <h2 class="text-2xl lg:text-3xl font-bold text-slate-800 mb-4">${story.title}</h2>
+                        <p class="text-slate-600 leading-relaxed text-base lg:text-lg">
+                            ${story.desc}
+                        </p>
+                    </div>
+                `;
+                sectionsContainer.appendChild(section);
+            });
+
+            // 2. Initial Render
+            let currentOption = storyContent[0].generator();
+            myChart.setOption(currentOption);
+
+            // 3. Navigation Logic
+            let currentNavIndex = 0;
+            const snapPoints = ['header-section', ...storyContent.map((_, i) => `section-${i}`)];
+
+            function navigate(direction) {
+                let newIndex = currentNavIndex + direction;
+                if (newIndex < 0) newIndex = 0;
+                if (newIndex >= snapPoints.length) newIndex = snapPoints.length - 1;
+                
+                currentNavIndex = newIndex;
+                const targetId = snapPoints[newIndex];
+                const targetEl = document.getElementById(targetId);
+                
+                if(targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            // 4. Intersection Observer Logic
+            const observerOptions = {
+                root: null,
+                rootMargin: "-40% 0px -40% 0px",
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const index = parseInt(entry.target.dataset.index);
+                        
+                        if (!isNaN(index)) {
+                            currentNavIndex = index + 1;
+                            document.querySelectorAll('.scroll-section').forEach(s => s.style.opacity = '0.4');
+                            entry.target.style.opacity = '1';
+
+                            const generator = storyContent[index].generator;
+                            if (generator) {
+                                myChart.setOption(generator(), true);
+                            }
+                        } else if (entry.target.id === 'header-section') {
+                            currentNavIndex = 0;
+                            myChart.setOption(storyContent[0].generator(), true);
+                            document.querySelectorAll('.scroll-section').forEach(s => s.style.opacity = '0.4');
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            observer.observe(document.getElementById('header-section'));
+            document.querySelectorAll('.scroll-section').forEach(section => {
+                observer.observe(section);
+            });
+
+            // 5. Handle Resize
+            window.addEventListener("resize", () => {
+                myChart.resize();
+                const activeSection = document.querySelector('.scroll-section[style*="opacity: 1"]');
+                if(activeSection) {
+                    const index = activeSection.dataset.index;
+                    myChart.setOption(storyContent[index].generator());
+                } else {
+                    // Fallback if header
+                    myChart.setOption(storyContent[0].generator());
+                }
+            });
+
+            document.querySelector('.scroll-section').style.opacity = '0.4';
+
+        </script>
+    </body>
+</html>
