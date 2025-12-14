@@ -1,242 +1,428 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ego States & Management</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- ECharts -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8fafc;
-        }
-        .btn {
-            transition: all 0.2s;
-        }
-        .btn:active {
-            transform: scale(0.95);
-        }
-    </style>
-</head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
-
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-4xl p-6 md:p-8">
-        
-        <!-- Navigation Header -->
-        <div class="flex justify-between items-center mb-6">
-            <button id="prevBtn" class="btn px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium">
-                &larr; Previous
-            </button>
-            <div class="text-center">
-                <span id="pageIndicator" class="text-xs font-bold text-slate-400 tracking-wider uppercase">Page 1 of 2</span>
-            </div>
-            <button id="nextBtn" class="btn px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium">
-                Next &rarr;
-            </button>
-        </div>
-
-        <div class="mb-2 text-center">
-            <h1 id="chartTitle" class="text-2xl md:text-3xl font-bold text-slate-800">Distribusi Ego Orang Tua</h1>
-            <p id="chartSubtitle" class="text-slate-500 mt-2">Perbandingan peran Ayah (Pembasuh) dan Bunda (Pelatih)</p>
-        </div>
-
-        <!-- Chart Container -->
-        <div id="egoChart" class="w-full h-[400px] md:h-[500px]"></div>
-
-        <div class="mt-6 text-sm text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <h3 class="font-semibold mb-2">Analisis:</h3>
-            <div id="chartAnalysis">
-                <!-- Analysis text will be injected here -->
-            </div>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const chartDom = document.getElementById('egoChart');
-            let myChart = echarts.init(chartDom);
-            
-            // Data 1: Horizontal Stacked Bar (Parental Roles)
-            const categoriesBar = [
-                'Ego Tinggi\n(Bahasa Tangan)', 
-                'Ego Sedang\n(Bahasa Lisan)', 
-                'Ego Rendah\n(Bahasa Hati)'
-            ];
-
-            // Configuration Data
-            const chartsData = [
-                {
-                    type: 'bar_horizontal',
-                    title: "Distribusi Ego Orang Tua",
-                    subtitle: "Perbandingan peran Ayah (Pembasuh) dan Bunda (Pelatih)",
-                    legendData: ["Ayah", "Bunda"],
-                    // Data setup for Bar
-                    yAxisData: categoriesBar,
-                    series: [
-                        {
-                            name: 'Ayah',
-                            color: '#3b82f6', // Blue
-                            data: [30, 50, 80]
-                        },
-                        {
-                            name: 'Bunda',
-                            color: '#ec4899', // Pink
-                            data: [70, 50, 20]
-                        }
-                    ],
-                    analysis: `
-                        <ul class="list-disc list-inside space-y-1">
-                            <li><span class="font-semibold">Ego Tinggi (Bahasa Tangan):</span> Dominasi Bunda sebagai "Pelatih" yang mengarahkan.</li>
-                            <li><span class="font-semibold">Ego Sedang (Bahasa Lisan):</span> Keseimbangan komunikasi verbal.</li>
-                            <li><span class="font-semibold">Ego Rendah (Bahasa Hati):</span> Dominasi Ayah sebagai "Pembasuh" yang memberi ketenangan.</li>
-                        </ul>
-                    `
-                },
-                {
-                    type: 'line_time',
-                    title: "Manajemen EGO",
-                    subtitle: "Dinamika Ego Anak vs Ego Orang Tua Seiring Usia",
-                    legendData: ["Ego Anak", "Ego Ortu"],
-                    // Data setup for Line
-                    xAxisData: ['Lahir', '7 th', '10 th', 'Baligh', 'Dewasa'],
-                    series: [
-                        {
-                            name: 'Ego Anak',
-                            color: '#2563eb', // Blue-600
-                            data: [100, 60, 40, 20, 10], // High to Low
-                            lineWidth: 4
-                        },
-                        {
-                            name: 'Ego Ortu',
-                            color: '#16a34a', // Green-600
-                            data: [10, 40, 60, 80, 90], // Low to High
-                            lineWidth: 4
-                        }
-                    ],
-                    analysis: `
-                        <ul class="list-disc list-inside space-y-1">
-                            <li><span class="font-semibold">Ego Anak (Garis Biru):</span> Bermula sangat tinggi (egosentris) saat lahir, dan menurun seiring kedewasaan.</li>
-                            <li><span class="font-semibold">Ego Ortu (Garis Hijau):</span> Bermula rendah (melayani), namun meningkat seiring waktu saat anak membutuhkan arahan dan batasan.</li>
-                            <li><span class="font-semibold">Titik Temu (7-10 Tahun):</span> Masa krusial dimana kemandirian anak mulai berimbang dengan otoritas orang tua.</li>
-                        </ul>
-                    `
-                }
-            ];
-
-            let currentIndex = 0;
-
-            function renderChart(index) {
-                const data = chartsData[index];
-                
-                // Update DOM Text
-                document.getElementById('chartTitle').innerText = data.title;
-                document.getElementById('chartSubtitle').innerText = data.subtitle;
-                document.getElementById('chartAnalysis').innerHTML = data.analysis;
-                document.getElementById('pageIndicator').innerText = `Chart ${index + 1} of ${chartsData.length}`;
-                
-                // Update Button State
-                document.getElementById('prevBtn').disabled = index === 0;
-                document.getElementById('nextBtn').disabled = index === chartsData.length - 1;
-
-                // Clear previous chart to prevent artifacting when switching types
-                myChart.clear();
-
-                let option = {};
-
-                if (data.type === 'bar_horizontal') {
-                    // Logic for the Bar Chart
-                    option = {
-                        tooltip: {
-                            trigger: 'axis',
-                            axisPointer: { type: 'shadow' },
-                            formatter: function(params) {
-                                let result = params[0].name + '<br/>';
-                                params.forEach(param => {
-                                    result += param.marker + ' ' + param.seriesName + ': ' + param.value + '%<br/>';
-                                });
-                                return result;
-                            }
-                        },
-                        legend: { data: data.legendData, bottom: 0 },
-                        grid: { left: '3%', right: '4%', bottom: '10%', top: '5%', containLabel: true },
-                        xAxis: {
-                            type: 'value',
-                            max: 100,
-                            axisLabel: { formatter: '{value}%' }
-                        },
-                        yAxis: {
-                            type: 'category',
-                            data: data.yAxisData,
-                            inverse: true,
-                            axisLabel: { fontWeight: 'bold', width: 110, overflow: 'break' }
-                        },
-                        series: data.series.map(s => ({
-                            name: s.name,
-                            type: 'bar',
-                            stack: 'total',
-                            label: { show: true, formatter: '{c}%', color: '#fff', fontWeight: 'bold' },
-                            itemStyle: { color: s.color },
-                            data: s.data
-                        }))
-                    };
-                } else if (data.type === 'line_time') {
-                    // Logic for the Line Chart (Manajemen EGO)
-                    option = {
-                        tooltip: {
-                            trigger: 'axis'
-                        },
-                        legend: { data: data.legendData, bottom: 0 },
-                        grid: { left: '3%', right: '4%', bottom: '10%', top: '10%', containLabel: true },
-                        xAxis: {
-                            type: 'category',
-                            boundaryGap: false,
-                            data: data.xAxisData,
-                            axisLabel: { fontWeight: 'bold' }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            name: 'Tingkat Ego',
-                            max: 100,
-                            splitLine: { lineStyle: { type: 'dashed' } }
-                        },
-                        series: data.series.map(s => ({
-                            name: s.name,
-                            type: 'line',
-                            symbol: 'circle',
-                            symbolSize: 10,
-                            smooth: true,
-                            lineStyle: { width: s.lineWidth },
-                            itemStyle: { color: s.color },
-                            data: s.data,
-                            markPoint: {
-                                data: [
-                                    { type: 'max', name: 'Max' }
-                                ]
-                            }
-                        }))
-                    };
-                }
-
-                myChart.setOption(option);
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ego States & Management</title>
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- ECharts -->
+        <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f8fafc;
             }
+            .btn {
+                transition: all 0.2s;
+            }
+            .btn:active {
+                transform: scale(0.95);
+            }
+        </style>
+    </head>
+    <body class="flex flex-col items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-5xl p-6 md:p-8">
+            <!-- Navigation Header -->
+            <div class="flex justify-between items-center mb-6">
+                <button
+                    id="prevBtn"
+                    class="btn px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                    &larr; Previous
+                </button>
+                <div class="text-center">
+                    <span
+                        id="pageIndicator"
+                        class="text-xs font-bold text-slate-400 tracking-wider uppercase"
+                        >Page 1 of 3</span
+                    >
+                </div>
+                <button
+                    id="nextBtn"
+                    class="btn px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                    Next &rarr;
+                </button>
+            </div>
 
-            // Listeners
-            document.getElementById('prevBtn').addEventListener('click', () => {
-                if (currentIndex > 0) { currentIndex--; renderChart(currentIndex); }
+            <div class="mb-2 text-center">
+                <h1
+                    id="chartTitle"
+                    class="text-2xl md:text-3xl font-bold text-slate-800"
+                >
+                    Distribusi Ego Orang Tua
+                </h1>
+                <p id="chartSubtitle" class="text-slate-500 mt-2">
+                    Perbandingan peran Ayah (Pembasuh) dan Bunda (Pelatih)
+                </p>
+            </div>
+
+            <!-- Chart Container -->
+            <div id="egoChart" class="w-full h-[400px] md:h-[500px]"></div>
+
+            <div
+                class="mt-6 text-sm text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-200"
+            >
+                <h3 class="font-semibold mb-2">Analisis:</h3>
+                <div id="chartAnalysis">
+                    <!-- Analysis text will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const chartDom = document.getElementById("egoChart");
+                let myChart = echarts.init(chartDom);
+
+                // --- DATASETS ---
+
+                const categoriesBar = [
+                    "Ego Tinggi\n(Bahasa Tangan)",
+                    "Ego Sedang\n(Bahasa Lisan)",
+                    "Ego Rendah\n(Bahasa Hati)",
+                ];
+
+                // SCATTER DATA MAPPING
+                // X: Age (Usia Ideal) -> 0 to 18
+                // Y: Ego Spectrum -> 0 (Full Hati/Rendah) to 100 (Full Tangan/Tinggi)
+                // Size: Verbal (Ego Sedang) -> 10 to 60
+                // [Age, EgoScore, VerbalSize, Name, Group]
+
+                const scatterDataSyariah = [
+                    [3, 10, 40, "Adab & Akhlaq", "Syariah"], // Early age, High Heart (Role model)
+                    [4, 20, 30, "Aqidah", "Syariah"], // Early age, Heart/Faith
+                    [6, 30, 50, "Sirah Nabawiyah", "Syariah"], // TK/SD, Storytelling (Verbal high)
+                    [8, 80, 35, "Fiqh (Ibadah)", "Syariah"], // SD, High Structure (Rules)
+                    [9, 85, 25, "Tajwid/Tahsin", "Syariah"], // SD, High Structure (Drill)
+                ];
+
+                const scatterDataUmum = [
+                    [5, 40, 50, "Bahasa", "Sekolah"], // Early, High Verbal
+                    [6, 60, 40, "Calistung", "Sekolah"], // TK/SD, Balanced/Structure
+                    [11, 90, 45, "Matematika", "Sekolah"], // SMP, High Logic/Structure
+                    [12, 85, 40, "Sains (IPA)", "Sekolah"], // SMP, Logic
+                    [13, 30, 50, "Sejarah/Sosial", "Sekolah"], // SMP, Context/Story (Heart)
+                    [14, 20, 40, "Seni Budaya", "Sekolah"], // SMP, Expression (Heart)
+                ];
+
+                const scatterDataSkill = [
+                    [4, 15, 25, "Gardening", "Outdoor"], // Early, Patience (Heart)
+                    [7, 85, 20, "Olahraga", "Outdoor"], // SD, Rules/Discipline (Hands)
+                    [10, 75, 30, "Cooking", "Home"], // SD, Recipe/Structure
+                    [12, 65, 35, "Pramuka", "Outdoor"], // SMP, Team/Structure
+                    [15, 50, 45, "Leadership", "Outdoor"], // SMA, Balanced
+                ];
+
+                // Configuration Data Array
+                const chartsData = [
+                    {
+                        type: "bar_horizontal",
+                        title: "Distribusi Ego Orang Tua",
+                        subtitle:
+                            "Perbandingan peran Ayah (Pembasuh) dan Bunda (Pelatih)",
+                        analysis: `
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><span class="font-semibold">Ego Tinggi (Bahasa Tangan):</span> Dominasi Bunda sebagai "Pelatih".</li>
+                            <li><span class="font-semibold">Ego Sedang (Bahasa Lisan):</span> Keseimbangan komunikasi verbal.</li>
+                            <li><span class="font-semibold">Ego Rendah (Bahasa Hati):</span> Dominasi Ayah sebagai "Pembasuh".</li>
+                        </ul>
+                    `,
+                        optionGen: () => ({
+                            tooltip: {
+                                trigger: "axis",
+                                axisPointer: { type: "shadow" },
+                                formatter: (params) => {
+                                    let res = params[0].name + "<br/>";
+                                    params.forEach(
+                                        (p) =>
+                                            (res +=
+                                                p.marker +
+                                                " " +
+                                                p.seriesName +
+                                                ": " +
+                                                p.value +
+                                                "%<br/>"),
+                                    );
+                                    return res;
+                                },
+                            },
+                            legend: { data: ["Ayah", "Bunda"], bottom: 0 },
+                            grid: {
+                                left: "3%",
+                                right: "4%",
+                                bottom: "10%",
+                                top: "5%",
+                                containLabel: true,
+                            },
+                            xAxis: {
+                                type: "value",
+                                max: 100,
+                                axisLabel: { formatter: "{value}%" },
+                            },
+                            yAxis: {
+                                type: "category",
+                                data: categoriesBar,
+                                inverse: true,
+                                axisLabel: {
+                                    fontWeight: "bold",
+                                    width: 110,
+                                    overflow: "break",
+                                },
+                            },
+                            series: [
+                                {
+                                    name: "Ayah",
+                                    type: "bar",
+                                    stack: "total",
+                                    label: { show: true, formatter: "{c}%" },
+                                    itemStyle: { color: "#3b82f6" },
+                                    data: [30, 50, 80],
+                                },
+                                {
+                                    name: "Bunda",
+                                    type: "bar",
+                                    stack: "total",
+                                    label: { show: true, formatter: "{c}%" },
+                                    itemStyle: { color: "#ec4899" },
+                                    data: [70, 50, 20],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: "line_time",
+                        title: "Manajemen EGO",
+                        subtitle:
+                            "Dinamika Ego Anak vs Ego Orang Tua Seiring Usia",
+                        analysis: `
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><span class="font-semibold">Ego Anak (Biru):</span> Menurun dari egosentris (lahir) menuju kedewasaan.</li>
+                            <li><span class="font-semibold">Ego Ortu (Hijau):</span> Meningkat dari melayani (bayi) menuju mengarahkan (dewasa).</li>
+                            <li><span class="font-semibold">Cross-over (7-10 th):</span> Titik keseimbangan otoritas dan kemandirian.</li>
+                        </ul>
+                    `,
+                        optionGen: () => ({
+                            tooltip: { trigger: "axis" },
+                            legend: {
+                                data: ["Ego Anak", "Ego Ortu"],
+                                bottom: 0,
+                            },
+                            grid: {
+                                left: "3%",
+                                right: "4%",
+                                bottom: "10%",
+                                top: "10%",
+                                containLabel: true,
+                            },
+                            xAxis: {
+                                type: "category",
+                                boundaryGap: false,
+                                data: [
+                                    "Lahir",
+                                    "7 th",
+                                    "10 th",
+                                    "Baligh",
+                                    "Dewasa",
+                                ],
+                                axisLabel: { fontWeight: "bold" },
+                            },
+                            yAxis: {
+                                type: "value",
+                                name: "Tingkat Ego",
+                                max: 100,
+                                splitLine: { lineStyle: { type: "dashed" } },
+                            },
+                            series: [
+                                {
+                                    name: "Ego Anak",
+                                    type: "line",
+                                    smooth: true,
+                                    itemStyle: { color: "#2563eb" },
+                                    lineStyle: { width: 4 },
+                                    data: [100, 60, 40, 20, 10],
+                                },
+                                {
+                                    name: "Ego Ortu",
+                                    type: "line",
+                                    smooth: true,
+                                    itemStyle: { color: "#16a34a" },
+                                    lineStyle: { width: 4 },
+                                    data: [10, 40, 60, 80, 90],
+                                },
+                            ],
+                        }),
+                    },
+                    {
+                        type: "scatter",
+                        title: "Peta Pendekatan Guru & Pelajaran",
+                        subtitle:
+                            "Kapan (Usia) dan Bagaimana (Ego) Pelajaran Diberikan",
+                        analysis: `
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><span class="font-semibold">Sumbu Y (Ego Spectrum):</span> Bawah = Butuh Hati/Empati (Ego Rendah). Atas = Butuh Aturan/Struktur (Ego Tinggi).</li>
+                            <li><span class="font-semibold">Sumbu X (Usia):</span> Menunjukkan usia ideal pengajaran pelajaran tersebut.</li>
+                            <li><span class="font-semibold">Pola:</span> Pelajaran usia dini (Adab, Bahasa) cenderung di bawah (Hati), pelajaran usia lanjut (Matematika, Fiqh) cenderung di atas (Aturan).</li>
+                        </ul>
+                    `,
+                        optionGen: () => ({
+                            tooltip: {
+                                formatter: function (param) {
+                                    let egoDesc =
+                                        param.data[1] < 50
+                                            ? "Dominan Hati (Rendah)"
+                                            : "Dominan Tangan (Tinggi)";
+                                    return `<b>${param.data[3]}</b><br/>
+                                        Usia: ${param.data[0]} Tahun<br/>
+                                        Pendekatan: ${egoDesc} (${param.data[1]})<br/>
+                                        Verbal: ${param.data[2]}`;
+                                },
+                            },
+                            legend: {
+                                data: ["Syariah", "Akademik", "Skill/Life"],
+                                bottom: 0,
+                            },
+                            grid: {
+                                left: "3%",
+                                right: "10%",
+                                bottom: "10%",
+                                top: "10%",
+                                containLabel: true,
+                            },
+                            xAxis: {
+                                type: "value",
+                                name: "Usia Anak (Tahun)",
+                                nameLocation: "middle",
+                                nameGap: 25,
+                                min: 0,
+                                max: 18,
+                                splitLine: { lineStyle: { type: "dashed" } },
+                            },
+                            yAxis: {
+                                type: "value",
+                                name: "Spectrum Ego\n(Bawah: Hati -> Atas: Tangan)",
+                                nameLocation: "end",
+                                min: 0,
+                                max: 100,
+                                axisLabel: {
+                                    formatter: function (value) {
+                                        if (value === 0)
+                                            return "Ego Rendah\n(Hati)";
+                                        if (value === 50) return "Seimbang";
+                                        if (value === 100)
+                                            return "Ego Tinggi\n(Tangan)";
+                                        return value;
+                                    },
+                                },
+                                splitLine: { lineStyle: { type: "dashed" } },
+                            },
+                            series: [
+                                {
+                                    name: "Syariah",
+                                    type: "scatter",
+                                    itemStyle: { color: "#8b5cf6" },
+                                    symbolSize: function (data) {
+                                        return data[2];
+                                    },
+                                    data: scatterDataSyariah,
+                                    label: {
+                                        show: true,
+                                        formatter: function (param) {
+                                            return param.data[3];
+                                        },
+                                        position: "top",
+                                        fontSize: 10,
+                                    },
+                                },
+                                {
+                                    name: "Akademik",
+                                    type: "scatter",
+                                    itemStyle: { color: "#ef4444" },
+                                    symbolSize: function (data) {
+                                        return data[2];
+                                    },
+                                    data: scatterDataUmum,
+                                    label: {
+                                        show: true,
+                                        formatter: function (param) {
+                                            return param.data[3];
+                                        },
+                                        position: "top",
+                                        fontSize: 10,
+                                    },
+                                },
+                                {
+                                    name: "Skill/Life",
+                                    type: "scatter",
+                                    itemStyle: { color: "#f59e0b" },
+                                    symbolSize: function (data) {
+                                        return data[2];
+                                    },
+                                    data: scatterDataSkill,
+                                    label: {
+                                        show: true,
+                                        formatter: function (param) {
+                                            return param.data[3];
+                                        },
+                                        position: "top",
+                                        fontSize: 10,
+                                    },
+                                },
+                            ],
+                        }),
+                    },
+                ];
+
+                let currentIndex = 0;
+
+                function renderChart(index) {
+                    const data = chartsData[index];
+
+                    // Update DOM Text
+                    document.getElementById("chartTitle").innerText =
+                        data.title;
+                    document.getElementById("chartSubtitle").innerText =
+                        data.subtitle;
+                    document.getElementById("chartAnalysis").innerHTML =
+                        data.analysis;
+                    document.getElementById("pageIndicator").innerText =
+                        `Page ${index + 1} of ${chartsData.length}`;
+
+                    // Update Button State
+                    document.getElementById("prevBtn").disabled = index === 0;
+                    document.getElementById("nextBtn").disabled =
+                        index === chartsData.length - 1;
+
+                    // Clear and Set
+                    myChart.clear();
+                    myChart.setOption(data.optionGen());
+                }
+
+                // Listeners
+                document
+                    .getElementById("prevBtn")
+                    .addEventListener("click", () => {
+                        if (currentIndex > 0) {
+                            currentIndex--;
+                            renderChart(currentIndex);
+                        }
+                    });
+
+                document
+                    .getElementById("nextBtn")
+                    .addEventListener("click", () => {
+                        if (currentIndex < chartsData.length - 1) {
+                            currentIndex++;
+                            renderChart(currentIndex);
+                        }
+                    });
+
+                window.addEventListener("resize", () => myChart.resize());
+
+                // Initial Render
+                renderChart(currentIndex);
             });
-
-            document.getElementById('nextBtn').addEventListener('click', () => {
-                if (currentIndex < chartsData.length - 1) { currentIndex++; renderChart(currentIndex); }
-            });
-
-            window.addEventListener('resize', () => myChart.resize());
-
-            // Initial Render
-            renderChart(currentIndex);
-        });
-    </script>
-</body>
+        </script>
+    </body>
 </html>
