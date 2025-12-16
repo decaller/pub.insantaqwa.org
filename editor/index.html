@@ -52,10 +52,13 @@
     </head>
     <body class="h-screen flex flex-col overflow-hidden bg-base-300">
         <!-- Main Content -->
-        <div class="flex flex-1 h-screen overflow-hidden">
-            <!-- LEFT PANEL: Controls (40% width) -->
+        <div class="flex flex-1 h-screen overflow-hidden" id="mainContainer">
+            <!-- LEFT PANEL: Controls -->
+            <!-- Changed fixed width to percent style and added ID for resizing -->
             <div
-                class="w-2/5 min-w-[400px] bg-base-200 flex flex-col border-r border-base-300 shadow-xl z-10"
+                id="leftPanel"
+                style="width: 40%"
+                class="min-w-[300px] max-w-[80%] bg-base-200 flex flex-col border-r border-base-300 shadow-xl z-10 shrink-0"
             >
                 <!-- TOP: Full Source Input -->
                 <div class="flex flex-col h-1/3 p-4 pb-2">
@@ -152,8 +155,18 @@
                 </div>
             </div>
 
-            <!-- RIGHT PANEL: Preview (60% width) -->
-            <div class="flex-1 bg-white relative shadow-inner">
+            <!-- RESIZER HANDLE -->
+            <div
+                id="resizerHandle"
+                class="w-1.5 hover:w-3 bg-base-300 hover:bg-primary cursor-col-resize transition-all z-50 flex flex-col justify-center items-center group -ml-0.5"
+            >
+                <div
+                    class="w-0.5 h-8 bg-base-content/20 group-hover:bg-primary-content/50 rounded-full transition-colors"
+                ></div>
+            </div>
+
+            <!-- RIGHT PANEL: Preview -->
+            <div class="flex-1 bg-white relative shadow-inner min-w-[200px]">
                 <!-- Overlay for Inspector Mode (visual cue) -->
                 <div
                     id="inspectorOverlay"
@@ -185,6 +198,11 @@
             const frame = document.getElementById("previewFrame");
             const inspectBtn = document.getElementById("inspectBtn");
             const overlay = document.getElementById("inspectorOverlay");
+
+            // Resizing Elements
+            const resizer = document.getElementById("resizerHandle");
+            const leftPanel = document.getElementById("leftPanel");
+            let isResizingPanels = false;
 
             const defaultTemplate = `<!DOCTYPE html>
 <html>
@@ -271,6 +289,42 @@
                     applyElementChange(instance.getValue());
                 });
             }
+
+            // --- Resizing Logic ---
+            resizer.addEventListener("mousedown", (e) => {
+                isResizingPanels = true;
+                document.body.style.cursor = "col-resize";
+                // Disable interactions with iframe to prevent mouse trapping
+                frame.style.pointerEvents = "none";
+                document.body.classList.add("select-none"); // Prevent text selection
+            });
+
+            document.addEventListener("mousemove", (e) => {
+                if (!isResizingPanels) return;
+                e.preventDefault(); // Prevent selection
+
+                const containerWidth = document.body.clientWidth;
+                let newWidth = (e.clientX / containerWidth) * 100;
+
+                // Limits
+                if (newWidth < 20) newWidth = 20;
+                if (newWidth > 80) newWidth = 80;
+
+                leftPanel.style.width = `${newWidth}%`;
+            });
+
+            document.addEventListener("mouseup", () => {
+                if (isResizingPanels) {
+                    isResizingPanels = false;
+                    document.body.style.cursor = "default";
+                    frame.style.pointerEvents = "auto";
+                    document.body.classList.remove("select-none");
+
+                    // Refresh editors so they redraw correctly after layout change
+                    if (cmSource) cmSource.refresh();
+                    if (cmElement) cmElement.refresh();
+                }
+            });
 
             // --- Core Functions ---
 
