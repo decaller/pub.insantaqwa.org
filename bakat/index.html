@@ -1,0 +1,2156 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Peta Bakat & Sifat Manusia</title>
+
+        <!-- Tailwind CSS & DaisyUI -->
+        <link
+            href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
+            rel="stylesheet"
+            type="text/css"
+        />
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Fonts & Icons -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+
+        <style>
+            body {
+                font-family: "Plus Jakarta Sans", sans-serif;
+                transition: background-color 0.3s ease;
+            }
+            .font-arab {
+                font-family: "Amiri", serif;
+            }
+
+            /* Smooth fade */
+            .fade-in {
+                animation: fadeIn 0.4s ease-out;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Map Styles */
+            .map-shape {
+                cursor: pointer;
+                transition: all 0.2s ease;
+                vector-effect: non-scaling-stroke;
+            }
+            .map-shape:hover {
+                filter: brightness(0.85);
+                stroke: #000;
+                stroke-width: 2px;
+            }
+            .map-text {
+                fill: #000000 !important;
+                font-weight: bold;
+                pointer-events: none;
+            }
+            .map-highlight {
+                stroke: #ff0000 !important;
+                stroke-width: 4px !important;
+                filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.4));
+                animation: pulseMap 1.5s infinite;
+            }
+
+            @keyframes pulseMap {
+                0% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.7;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+        </style>
+    </head>
+    <body class="bg-base-300 min-h-screen flex flex-col">
+        <!-- Navbar -->
+        <div class="navbar bg-base-100 shadow-md sticky top-0 z-50">
+            <div class="navbar-start">
+                <a class="btn btn-ghost text-xl text-primary font-bold gap-2">
+                    <i class="fa-solid fa-compass"></i>
+                    <span class="hidden sm:inline">Peta Bakat</span>
+                </a>
+            </div>
+            <div class="navbar-center">
+                <div role="tablist" class="tabs tabs-boxed">
+                    <a
+                        role="tab"
+                        class="tab tab-active transition-all"
+                        id="tab-exploration"
+                        onclick="switchView('exploration')"
+                    >
+                        <i class="fa-solid fa-magnifying-glass mr-2"></i>
+                        Eksplorasi
+                    </a>
+                    <a
+                        role="tab"
+                        class="tab transition-all"
+                        id="tab-table"
+                        onclick="switchView('table')"
+                    >
+                        <i class="fa-solid fa-table mr-2"></i> Tabel
+                    </a>
+                </div>
+            </div>
+            <div class="navbar-end gap-2">
+                <label class="swap swap-rotate btn btn-ghost btn-circle">
+                    <input type="checkbox" id="theme-toggle" />
+                    <svg
+                        class="swap-on fill-current w-6 h-6"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"
+                        />
+                    </svg>
+                    <svg
+                        class="swap-off fill-current w-6 h-6"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"
+                        />
+                    </svg>
+                </label>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="container mx-auto p-4 flex-grow">
+            <!-- Header -->
+            <div
+                class="text-center py-6 bg-base-100 rounded-box shadow-sm mb-6"
+            >
+                <h1 class="text-3xl font-bold mb-2 text-base-content">
+                    Ensiklopedia Karakter
+                </h1>
+                <p class="text-base-content/70 text-sm max-w-xl mx-auto">
+                    Peta interaktif struktur kepribadian manusia berdasarkan
+                    jalur Karsa, Cipta, dan Rasa.
+                </p>
+            </div>
+
+            <!-- Filter -->
+            <div class="flex flex-col gap-4 mb-6">
+                <div class="form-control w-full max-w-lg mx-auto">
+                    <input
+                        type="text"
+                        id="search-input"
+                        placeholder="Cari sifat, arab, atau definisi..."
+                        class="input input-bordered w-full shadow-sm"
+                        oninput="handleSearch()"
+                    />
+                </div>
+                <div
+                    class="flex flex-wrap gap-2 justify-center"
+                    id="category-filters"
+                ></div>
+            </div>
+
+            <!-- EXPLORATION VIEW -->
+            <div id="view-exploration" class="fade-in">
+                <!-- Map Container -->
+                <div
+                    class="card bg-base-100 shadow-xl mb-8 border border-base-200 overflow-hidden"
+                >
+                    <div
+                        class="bg-base-200 px-4 py-2 border-b border-base-300 flex justify-between items-center"
+                    >
+                        <span class="font-bold text-sm opacity-70"
+                            ><i class="fa-solid fa-map"></i> Peta
+                            Interaktif</span
+                        >
+                        <span class="text-xs opacity-50"
+                            >Klik area berwarna untuk detail</span
+                        >
+                    </div>
+                    <div
+                        id="map-container"
+                        class="w-full overflow-x-auto flex justify-center bg-white p-4 min-h-[300px]"
+                    >
+                        <!-- SVG injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Grid Cards -->
+                <div
+                    id="content-grid"
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                ></div>
+            </div>
+
+            <!-- TABLE VIEW -->
+            <div
+                id="view-table"
+                class="hidden fade-in bg-base-100 rounded-box shadow-xl p-6"
+            >
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg">Data Tabel</h3>
+                    <button
+                        class="btn btn-primary btn-sm btn-outline gap-2"
+                        onclick="copyTableData()"
+                    >
+                        <i class="fa-regular fa-copy"></i> Salin
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table
+                        class="table table-zebra table-hover table-sm w-full"
+                        id="data-table-el"
+                    >
+                        <thead>
+                            <tr class="bg-base-200">
+                                <th>Nama</th>
+                                <th>Arab</th>
+                                <th>Jalur Sifat</th>
+                                <th>Kutub</th>
+                                <th>Definisi</th>
+                                <th>Kelompok</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="empty-state" class="hidden text-center py-10 opacity-50">
+                <i class="fa-regular fa-folder-open text-4xl mb-2"></i>
+                <p>Data tidak ditemukan.</p>
+            </div>
+        </main>
+
+        <!-- Modal -->
+        <dialog
+            id="detail_modal"
+            class="modal modal-bottom sm:modal-middle backdrop-blur-sm"
+        >
+            <div
+                class="modal-box w-11/12 max-w-5xl relative shadow-2xl p-0 overflow-hidden"
+            >
+                <div class="bg-base-100 p-4 sticky top-0 z-20 flex justify-end">
+                    <form method="dialog">
+                        <button class="btn btn-sm btn-circle btn-ghost">
+                            ✕
+                        </button>
+                    </form>
+                </div>
+                <div
+                    id="modal-content"
+                    class="p-6 pt-0 overflow-y-auto max-h-[80vh]"
+                ></div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
+
+        <!-- Toast -->
+        <div id="toast-container" class="toast toast-end z-50"></div>
+
+        <script>
+            // --- DATA LENGKAP ---
+            const rawData = {
+                2: [
+                    {
+                        name: "Introvert",
+                        data: {
+                            arab: null,
+                            arti: "introvert",
+                            definisi: "tidak senang bertemu orang",
+                        },
+                        pillar: { no: "1", group: "2" },
+                        parents: [],
+                    },
+                    {
+                        name: "Extrovert",
+                        data: {
+                            arab: null,
+                            arti: "extrovert",
+                            definisi: "senang bertemu orang",
+                        },
+                        pillar: { no: "2", group: "2" },
+                        parents: [],
+                    },
+                ],
+                3: [
+                    {
+                        name: "Karsa",
+                        data: {
+                            arab: "الهَوَى",
+                            sebutan: "karsa",
+                            definisi: "bersemangat",
+                            nama_lengkap: "Al Hawa (الهَوَى)",
+                            arti: "bersemangat",
+                            gaya_belajar_arab: "Al Fuad (الفُؤَاد)",
+                            gaya_belajar: "bergerak",
+                            gaya_belajar_definisi:
+                                "Dalam belajar lebih suka bergerak dan menyentuh segala sesuatu yang dijumpai.",
+                            bahasa_hati: "Bahasa Pelayanan",
+                            bahasa_hati_definisi:
+                                "Bahasa hati dengan melayani kemauannya.",
+                        },
+                        pillar: { no: "1", group: "3" },
+                        parents: [],
+                    },
+                    {
+                        name: "Cipta",
+                        data: {
+                            arab: "العَقْل",
+                            sebutan: "cipta",
+                            definisi: "berpikir",
+                            nama_lengkap: "Al Aql (العَقْل)",
+                            arti: "berpikir",
+                            gaya_belajar_arab: "Al Bashar (البَصَر)",
+                            gaya_belajar: "melihat",
+                            gaya_belajar_definisi:
+                                "Dalam belajar lebih suka dengan cara melihat.",
+                            bahasa_hati: "Bahasa Kebersamaan",
+                            bahasa_hati_definisi:
+                                "Bahasa hati dengan cara menemaninya.",
+                        },
+                        pillar: { no: "2", group: "3" },
+                        parents: [],
+                    },
+                    {
+                        name: "Rasa",
+                        data: {
+                            arab: "القَلْب",
+                            sebutan: "rasa",
+                            definisi: "berperasaan",
+                            nama_lengkap: "Al Qalb (القَلْب)",
+                            arti: "berperasaan",
+                            gaya_belajar_arab: "As Sam'u (السَمْع)",
+                            gaya_belajar: "mendengar",
+                            gaya_belajar_definisi:
+                                "Dalam belajar lebih suka dengan cara mendengar.",
+                            bahasa_hati: "Bahasa Perlindungan",
+                            bahasa_hati_definisi:
+                                "Bahasa hati yang berupa pemberian hadiah atau motivasi.",
+                        },
+                        pillar: { no: "3", group: "3" },
+                        parents: [{ no: null, group: null }],
+                    },
+                ],
+                6: [
+                    {
+                        name: "Bekerja keras",
+                        data: {
+                            arab: "الحَمَاسَة",
+                            arti: "bekerja keras",
+                            nama_lengkap: "al hamaasah (الحَمَاسَة)",
+                            uraian: "memiliki keinginan yang melambung tinggi",
+                        },
+                        pillar: { no: "1", group: "6" },
+                        parents: [
+                            { no: "1", group: "3" },
+                            { no: "1", group: "2" },
+                        ],
+                    },
+                    {
+                        name: "Berpikir",
+                        data: {
+                            arab: "التَّفْكِيْر",
+                            arti: "berpikir",
+                            nama_lengkap: "at tafkiir (التَّفْكِيْر)",
+                            uraian: "cerdas, senang menganalisa sesuatu secara detail",
+                        },
+                        pillar: { no: "2", group: "6" },
+                        parents: [
+                            { no: "2", group: "3" },
+                            { no: "1", group: "2" },
+                        ],
+                    },
+                    {
+                        name: "Berperasaan",
+                        data: {
+                            arab: "الشُعُوْر",
+                            arti: "berperasaan",
+                            nama_lengkap: "as syu'uur (الشُعُوْر)",
+                            uraian: "suka diam merenung sendiri, mudah tersentuh",
+                        },
+                        pillar: { no: "3", group: "6" },
+                        parents: [
+                            { no: "3", group: "3" },
+                            { no: "1", group: "2" },
+                        ],
+                    },
+                    {
+                        name: "Mempengaruhi",
+                        data: {
+                            arab: "التَّأْثِيْر",
+                            arti: "mempengaruhi",
+                            nama_lengkap: "at ta'tsiir (التَّأْثِيْر)",
+                            uraian: "berani menghadapi orang untuk berbicara",
+                        },
+                        pillar: { no: "4", group: "6" },
+                        parents: [
+                            { no: "1", group: "3" },
+                            { no: "2", group: "2" },
+                        ],
+                    },
+                    {
+                        name: "Bekerjasama",
+                        data: {
+                            arab: "التَّعَامُل",
+                            arti: "bekerjasama",
+                            nama_lengkap: "at ta'aamul (التَّعَامُل)",
+                            uraian: "tidak suka konflik, suka berkumpul",
+                        },
+                        pillar: { no: "5", group: "6" },
+                        parents: [
+                            { no: "2", group: "3" },
+                            { no: "2", group: "2" },
+                        ],
+                    },
+                    {
+                        name: "Melayani",
+                        data: {
+                            arab: "الخِدْمَة",
+                            arti: "melayani",
+                            nama_lengkap: "al khidmah (الخِدْمَة)",
+                            uraian: "suka mengalah dan mendahulukan orang lain",
+                        },
+                        pillar: { no: "6", group: "6" },
+                        parents: [
+                            { no: "3", group: "3" },
+                            { no: "2", group: "2" },
+                        ],
+                    },
+                ],
+                18: [
+                    {
+                        name: "Berambisi",
+                        data: {
+                            arab: null,
+                            arti: "berambisi",
+                            definisi: "bekerja keras karena ambisi",
+                        },
+                        pillar: { no: "1", group: "18" },
+                        parents: [{ no: "1", group: "6" }],
+                    },
+                    {
+                        name: "Berwibawa",
+                        data: {
+                            arab: null,
+                            arti: "berwibawa",
+                            definisi: "bekerja keras karena wibawa",
+                        },
+                        pillar: { no: "2", group: "18" },
+                        parents: [{ no: "1", group: "6" }],
+                    },
+                    {
+                        name: "Giat bekerja",
+                        data: {
+                            arab: null,
+                            arti: "giat bekerja",
+                            definisi: "bekerja keras karena giat bekerja",
+                        },
+                        pillar: { no: "3", group: "18" },
+                        parents: [{ no: "1", group: "6" }],
+                    },
+                    {
+                        name: "Imajinatif",
+                        data: {
+                            arab: null,
+                            arti: "suka berpikir imajinatif",
+                            definisi: "berpikir imajinatif",
+                        },
+                        pillar: { no: "4", group: "18" },
+                        parents: [{ no: "2", group: "6" }],
+                    },
+                    {
+                        name: "Berpikir positif",
+                        data: {
+                            arab: null,
+                            arti: "suka berpikir positif",
+                            definisi: "berpikir positif",
+                        },
+                        pillar: { no: "5", group: "18" },
+                        parents: [{ no: "2", group: "6" }],
+                    },
+                    {
+                        name: "Analitis",
+                        data: {
+                            arab: null,
+                            arti: "suka berpikir analitis",
+                            definisi: "berpikir analitis",
+                        },
+                        pillar: { no: "6", group: "18" },
+                        parents: [{ no: "2", group: "6" }],
+                    },
+                    {
+                        name: "Suka apa adanya",
+                        data: {
+                            arab: null,
+                            arti: "suka apa adanya",
+                            definisi: "apa adanya",
+                        },
+                        pillar: { no: "7", group: "18" },
+                        parents: [{ no: "3", group: "6" }],
+                    },
+                    {
+                        name: "Pendiam",
+                        data: {
+                            arab: null,
+                            arti: "pendiam",
+                            definisi: "berdiam diri",
+                        },
+                        pillar: { no: "8", group: "18" },
+                        parents: [{ no: "3", group: "6" }],
+                    },
+                    {
+                        name: "Suka merendah",
+                        data: {
+                            arab: null,
+                            arti: "suka merendah",
+                            definisi: "merendah",
+                        },
+                        pillar: { no: "9", group: "18" },
+                        parents: [{ no: "3", group: "6" }],
+                    },
+                    {
+                        name: "Suka menguasai",
+                        data: {
+                            arab: null,
+                            arti: "suka menguasai",
+                            definisi: "mempengaruhi dengan cara menguasai",
+                        },
+                        pillar: { no: "10", group: "18" },
+                        parents: [{ no: "4", group: "6" }],
+                    },
+                    {
+                        name: "Suka memotivasi",
+                        data: {
+                            arab: null,
+                            arti: "suka memotivasi",
+                            definisi: "mempengaruhi dengan cara memotivasi",
+                        },
+                        pillar: { no: "11", group: "18" },
+                        parents: [{ no: "4", group: "6" }],
+                    },
+                    {
+                        name: "Suka menolong",
+                        data: {
+                            arab: null,
+                            arti: "suka menolong",
+                            definisi: "mempengaruhi dengan cara menolong",
+                        },
+                        pillar: { no: "12", group: "18" },
+                        parents: [{ no: "4", group: "6" }],
+                    },
+                    {
+                        name: "Menggunakan hubungan",
+                        data: {
+                            arab: null,
+                            arti: "suka menggunakan hubungan yang ada",
+                            definisi: "memanfaatkan hubungan",
+                        },
+                        pillar: { no: "13", group: "18" },
+                        parents: [{ no: "5", group: "6" }],
+                    },
+                    {
+                        name: "Membuat hubungan",
+                        data: {
+                            arab: null,
+                            arti: "suka membuat hubungan baru",
+                            definisi: "memulai hubungan baru",
+                        },
+                        pillar: { no: "14", group: "18" },
+                        parents: [{ no: "5", group: "6" }],
+                    },
+                    {
+                        name: "Mengeratkan hubungan",
+                        data: {
+                            arab: null,
+                            arti: "suka mengeratkan hubungan yang sudah ada",
+                            definisi: "menguatkan hubungan yang ada",
+                        },
+                        pillar: { no: "15", group: "18" },
+                        parents: [{ no: "5", group: "6" }],
+                    },
+                    {
+                        name: "Melayani memberi",
+                        data: {
+                            arab: null,
+                            arti: "suka melayani dengan cara memberi",
+                            definisi: "melayani dengan cara memberi",
+                        },
+                        pillar: { no: "16", group: "18" },
+                        parents: [{ no: "6", group: "6" }],
+                    },
+                    {
+                        name: "Melayani menjaga",
+                        data: {
+                            arab: null,
+                            arti: "suka melayani dengan cara menjaga",
+                            definisi: "melayani dengan cara menjaga",
+                        },
+                        pillar: { no: "17", group: "18" },
+                        parents: [{ no: "6", group: "6" }],
+                    },
+                    {
+                        name: "Melayani mengalah",
+                        data: {
+                            arab: null,
+                            arti: "suka melayani dengan cara mengalah",
+                            definisi: "melayani dengan cara mengalah",
+                        },
+                        pillar: { no: "18", group: "18" },
+                        parents: [{ no: "6", group: "6" }],
+                    },
+                ],
+                40: [
+                    {
+                        name: "Himmah",
+                        data: {
+                            pilar40: "1",
+                            arab: "الهِمَّة",
+                            nama: "bercita-cita tinggi",
+                            nama_lengkap: "Himmah / الهِمَّة",
+                            definisi:
+                                "memiliki rasa ingin tahu dan gairah yang sangat tinggi",
+                            lalai_arab: "الفُتُوْر",
+                            lalai_nama_lengkap: "Futuur (lemah kemauan)",
+                            lalai_definisi: "sikap malas, lesu, lamban",
+                            lebih_arab: "طُوْلُ الأَمَلِ",
+                            lebih_nama_lengkap:
+                                "Thuulul amal (panjang angan-angan)",
+                            lebih_definisi:
+                                "keinginan kuat terhadap sesuatu yang kemungkinan kecil",
+                            profesi: "Visioner, Leader, Entrepreneur",
+                            jurusan: "Ekonomi Syariah, Manajemen",
+                        },
+                        pillar: { no: "1", group: "40" },
+                        parents: [{ no: "1", group: "18" }],
+                    },
+                    {
+                        name: "Ihsaan",
+                        data: {
+                            pilar40: "2",
+                            arab: "الاِحْسَان",
+                            nama: "perfeksionis",
+                            nama_lengkap: "Ihsaan / الاِحْسَان",
+                            definisi: "mampu berbuat yang terbaik",
+                            lalai_arab: "الإِسَاءة",
+                            lalai_nama_lengkap: "Isaa’ah (berbuat kerusakan)",
+                            lalai_definisi:
+                                "perbuatan yang menjadikan sesuatu menjadi lebih buruk",
+                            lebih_arab: "التَّبْذِيْر",
+                            lebih_nama_lengkap: "Tabdziir (boros)",
+                            lebih_definisi:
+                                "berlebihan dalam membelanjakan atau berperilaku",
+                            profesi: "Quality Controller, Guru",
+                            jurusan: "Sains, Teknologi, Fiqih",
+                        },
+                        pillar: { no: "2", group: "40" },
+                        parents: [{ no: "1", group: "18" }],
+                    },
+                    {
+                        name: "‘Izzah",
+                        data: {
+                            pilar40: "3",
+                            arab: "العِزَّة",
+                            nama: "harga diri",
+                            nama_lengkap: "‘Izzah / العِزَّة",
+                            definisi: "mampu bersikap kuat dan tegas",
+                            lalai_arab: "الذُّلّ",
+                            lalai_nama_lengkap: "Dzull (lemah)",
+                            lalai_definisi:
+                                "lemahnya jiwa sehingga tidak mampu mempertahankan prinsip",
+                            lebih_arab: "الكِبْر",
+                            lebih_nama_lengkap: "Kibr (sombong)",
+                            lebih_definisi:
+                                "menolak kebenaran dan merendahkan orang lain",
+                            profesi: "Duta Besar, Leader",
+                            jurusan: "Hubungan Internasional, Hukum",
+                        },
+                        pillar: { no: "3", group: "40" },
+                        parents: [{ no: "2", group: "18" }],
+                    },
+                    {
+                        name: "Waqaar",
+                        data: {
+                            pilar40: "4",
+                            arab: "الوَقَار",
+                            nama: "berwibawa",
+                            nama_lengkap: "Waqaar / الوَقَار",
+                            definisi: "tenang tapi kelihatan tangguh",
+                            lalai_arab: "الذُّلّ",
+                            lalai_nama_lengkap: "Dzull (lemah)",
+                            lalai_definisi: "tidak mampu untuk bangkit",
+                            lebih_arab: "العُجْب",
+                            lebih_nama_lengkap: "Ujb (bangga diri)",
+                            lebih_definisi:
+                                "persepsi tinggi derajat pribadi yang tidak layak",
+                            profesi: "Trainer, Konsultan",
+                            jurusan: "Teknik, Manajemen",
+                        },
+                        pillar: { no: "4", group: "40" },
+                        parents: [{ no: "2", group: "18" }],
+                    },
+                    {
+                        name: "‘Aziimah",
+                        data: {
+                            pilar40: "5",
+                            arab: "العَزِيمَة",
+                            nama: "bertekad kuat",
+                            nama_lengkap: "‘Aziimah / العَزِيمَة",
+                            definisi: "tekad kuat untuk memulai",
+                            lalai_arab: "الكَسَل",
+                            lalai_nama_lengkap: "Kasal (malas)",
+                            lalai_definisi: "merasa berat dan lamban",
+                            lebih_arab: "الطَّمَع",
+                            lebih_nama_lengkap: "Thama’ (Serakah)",
+                            lebih_definisi:
+                                "keinginan kuat terhadap sesuatu yang tidak dibutuhkan",
+                            profesi: "Perintis, Entrepreneur",
+                            jurusan: "Bisnis, Marketing",
+                        },
+                        pillar: { no: "5", group: "40" },
+                        parents: [{ no: "3", group: "18" }],
+                    },
+                    {
+                        name: "Nasyaath",
+                        data: {
+                            pilar40: "6",
+                            arab: "النَّشَاط",
+                            nama: "bersemangat",
+                            nama_lengkap: "Nasyaath / النَّشَاط",
+                            definisi: "bekerja keras menyelesaikan",
+                            lalai_arab: "الكَسَل",
+                            lalai_nama_lengkap: "Kasal (malas)",
+                            lalai_definisi: "merasa berat dan lamban",
+                            lebih_arab: "الطَّمَع",
+                            lebih_nama_lengkap: "Thama’ (serakah)",
+                            lebih_definisi:
+                                "keinginan kuat untuk mendapatkan sesuatu",
+                            profesi: "Pekerja Lapangan, Sales",
+                            jurusan: "Teknik, Keperawatan",
+                        },
+                        pillar: { no: "6", group: "40" },
+                        parents: [{ no: "3", group: "18" }],
+                    },
+                    {
+                        name: "Firaasah",
+                        data: {
+                            pilar40: "7",
+                            arab: "الفِرَاسَة",
+                            nama: "berfirasat",
+                            nama_lengkap: "Firaasah / الفِرَاسَة",
+                            definisi: "ketajaman ilmu batiniyah",
+                            lalai_arab: "السَّفَه",
+                            lalai_nama_lengkap: "Safah (bodoh)",
+                            lalai_definisi:
+                                "keyakinan bertentangan dengan hakikat",
+                            lebih_arab: "الكَذِب",
+                            lebih_nama_lengkap: "Kadzib (dusta)",
+                            lebih_definisi: "mengabarkan sesuatu tidak sesuai",
+                            profesi: "Konsultan, Manajer",
+                            jurusan: "Psikologi, Manajemen",
+                        },
+                        pillar: { no: "7", group: "40" },
+                        parents: [{ no: "4", group: "18" }],
+                    },
+                    {
+                        name: "Nubl",
+                        data: {
+                            pilar40: "8",
+                            arab: "النُّبْل",
+                            nama: "cerdik",
+                            nama_lengkap: "Nubl / النُّبْل",
+                            definisi: "banyak akal mencari solusi",
+                            lalai_arab: "الجَهْل",
+                            lalai_nama_lengkap: "Jahl (kebodohan)",
+                            lalai_definisi: "kebingungan menghadapi masalah",
+                            lebih_arab: "الغِشِّ",
+                            lebih_nama_lengkap: "Ghisy (licik)",
+                            lebih_definisi: "menipu orang lain dengan siasat",
+                            profesi: "Strategist, Problem Solver",
+                            jurusan: "Manajemen, Hukum",
+                        },
+                        pillar: { no: "8", group: "40" },
+                        parents: [{ no: "4", group: "18" }],
+                    },
+                    {
+                        name: "Husnuzhan",
+                        data: {
+                            pilar40: "9",
+                            arab: "حُسْنُ الظَّن",
+                            nama: "berprasangka baik",
+                            nama_lengkap: "Husnuzhan / حُسْنُ الظَّن",
+                            definisi: "menduga yang baik",
+                            lalai_arab: "سُوْءُ الظَّن",
+                            lalai_nama_lengkap: "Suu’uzhan (prasangka buruk)",
+                            lalai_definisi:
+                                "memenuhi hati dengan prasangka buruk",
+                            lebih_arab: "التَّقْلِيْد",
+                            lebih_nama_lengkap: "Taqliid (fanatik buta)",
+                            lebih_definisi: "mengikuti tanpa peduli kebenaran",
+                            profesi: "Mediator, Hakim",
+                            jurusan: "Hukum, Komunikasi",
+                        },
+                        pillar: { no: "9", group: "40" },
+                        parents: [{ no: "5", group: "18" }],
+                    },
+                    {
+                        name: "Dzakaa’",
+                        data: {
+                            pilar40: "10",
+                            arab: "الذَّكَاء",
+                            nama: "cerdas",
+                            nama_lengkap: "Dzakaa’ / الذَّكَاء",
+                            definisi: "kecepatan berpikir",
+                            lalai_arab: "الجَهْل",
+                            lalai_nama_lengkap: "Jahl (bodoh)",
+                            lalai_definisi: "meyakini sesuatu bertentangan",
+                            lebih_arab: "اَهْلُ الرَّأْي",
+                            lebih_nama_lengkap: "Ahlur ra’yi (pemuja akal)",
+                            lebih_definisi: "mendewakan logika",
+                            profesi: "Analis, Peneliti, Programmer",
+                            jurusan: "IT, Sains, Matematika",
+                        },
+                        pillar: { no: "10", group: "40" },
+                        parents: [{ no: "6", group: "18" }],
+                    },
+                    {
+                        name: "Hikmah",
+                        data: {
+                            pilar40: "11",
+                            arab: "الحِكْمَة",
+                            nama: "ahli hikmah",
+                            nama_lengkap: "Hikmah / الحِكْمَة",
+                            definisi: "keilmuan mendalam",
+                            lalai_arab: "الجَل",
+                            lalai_nama_lengkap: "Jahl (kebodohan)",
+                            lalai_definisi: "tidak mengetahui sebenarnya",
+                            lebih_arab: "الكَذِب",
+                            lebih_nama_lengkap: "Kadzib (dusta)",
+                            lebih_definisi:
+                                "mengabarkan peristiwa tidak sesuai",
+                            profesi: "Konsultan, Psikolog",
+                            jurusan: "Filsafat, Psikologi",
+                        },
+                        pillar: { no: "11", group: "40" },
+                        parents: [{ no: "6", group: "18" }],
+                    },
+                    {
+                        name: "Shidq",
+                        data: {
+                            pilar40: "12",
+                            arab: "الصِّدْق",
+                            nama: "jujur",
+                            nama_lengkap: "Shidq / الصِّدْق",
+                            definisi: "berkata apa adanya",
+                            lalai_arab: "الكَذِب",
+                            lalai_nama_lengkap: "Kadzib (dusta)",
+                            lalai_definisi: "mengabarkan tidak sesuai",
+                            lebih_arab: "إِفْشَاءُ السِّرّ",
+                            lebih_nama_lengkap:
+                                "Ifsyaa’us sirr (bocor rahasia)",
+                            lebih_definisi: "membocorkan rahasia",
+                            profesi: "Keuangan, Auditor",
+                            jurusan: "Akuntansi, Hukum",
+                        },
+                        pillar: { no: "12", group: "40" },
+                        parents: [{ no: "7", group: "18" }],
+                    },
+                    {
+                        name: "‘Iffah",
+                        data: {
+                            pilar40: "13",
+                            arab: "العِفَّة",
+                            nama: "menjaga diri",
+                            nama_lengkap: "‘Iffah / العِفَّة",
+                            definisi: "menahan diri dari nafsu",
+                            lalai_arab: "الفَحْش",
+                            lalai_nama_lengkap: "Fahsy (keji)",
+                            lalai_definisi: "keburukan di luar batas",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull (lemah)",
+                            lebih_definisi: "ketundukan jiwa",
+                            profesi: "Bendahara, Pengawas",
+                            jurusan: "Keuangan, Syariah",
+                        },
+                        pillar: { no: "13", group: "40" },
+                        parents: [{ no: "8", group: "18" }],
+                    },
+                    {
+                        name: "Shamt",
+                        data: {
+                            pilar40: "14",
+                            arab: "الصَّمْت",
+                            nama: "pendiam",
+                            nama_lengkap: "Shamt / الصَّمْت",
+                            definisi: "banyak diam",
+                            lalai_arab: "الغِيْبَة",
+                            lalai_nama_lengkap: "Ghiibah (menggunjing)",
+                            lalai_definisi: "membicarakan keburukan orang",
+                            lebih_arab: "الجُبْن",
+                            lebih_nama_lengkap: "Jubn (penakut)",
+                            lebih_definisi: "takut berbicara",
+                            profesi: "Peneliti, Admin",
+                            jurusan: "Administrasi, IT",
+                        },
+                        pillar: { no: "14", group: "40" },
+                        parents: [{ no: "8", group: "18" }],
+                    },
+                    {
+                        name: "Hayaa’",
+                        data: {
+                            pilar40: "15",
+                            arab: "الحَيَاء",
+                            nama: "pemalu",
+                            nama_lengkap: "Hayaa’ / الحَيَاء",
+                            definisi: "perasaan malu",
+                            lalai_arab: "الوَقَاحَة",
+                            lalai_nama_lengkap: "Waqaahah (tidak tahu malu)",
+                            lalai_definisi: "muka tebal",
+                            lebih_arab: "الدُوْنِيَّة",
+                            lebih_nama_lengkap: "Duuniyyah (minder)",
+                            lebih_definisi: "rendah diri",
+                            profesi: "Seniman, Desainer",
+                            jurusan: "Seni, Sastra",
+                        },
+                        pillar: { no: "15", group: "40" },
+                        parents: [{ no: "9", group: "18" }],
+                    },
+                    {
+                        name: "Qanaa'ah",
+                        data: {
+                            pilar40: "16",
+                            arab: "القَنَاعَة",
+                            nama: "sederhana",
+                            nama_lengkap: "Qanaa'ah / القَنَاعَة",
+                            definisi: "merasa cukup",
+                            lalai_arab: "الطَّمَع",
+                            lalai_nama_lengkap: "Thama’ (serakah)",
+                            lalai_definisi: "ingin kuat",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull (lemah)",
+                            lebih_definisi: "tidak mampu menuntut hak",
+                            profesi: "Logistik, Admin",
+                            jurusan: "Ekonomi, Sosial",
+                        },
+                        pillar: { no: "16", group: "40" },
+                        parents: [{ no: "9", group: "18" }],
+                    },
+                    {
+                        name: "Shabr",
+                        data: {
+                            pilar40: "17",
+                            arab: "الصَّبْر",
+                            nama: "penyabar",
+                            nama_lengkap: "Shabr / الصَّبْر",
+                            definisi: "menahan diri dari reaksi",
+                            lalai_arab: "الجَزَع",
+                            lalai_nama_lengkap: "Jaza’ (tidak sabar)",
+                            lalai_definisi: "gelisah",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull",
+                            lebih_definisi: "lemah",
+                            profesi: "Perawat, Layanan",
+                            jurusan: "Kesehatan, Sosial",
+                        },
+                        pillar: { no: "17", group: "40" },
+                        parents: [{ no: "9", group: "18" }],
+                    },
+                    {
+                        name: "Syajaa’ah",
+                        data: {
+                            pilar40: "18",
+                            arab: "الشَّجَاعَة",
+                            nama: "pemberani",
+                            nama_lengkap: "Syajaa’ah / الشَّجَاعَة",
+                            definisi: "berani menghadapi",
+                            lalai_arab: "الجُبْن",
+                            lalai_nama_lengkap: "Jubn (penakut)",
+                            lalai_definisi: "takut terhadap sesuatu",
+                            lebih_arab: "التَّهَوُّر",
+                            lebih_nama_lengkap: "Tahawwur (ceroboh)",
+                            lebih_definisi: "bertindak tanpa pikir",
+                            profesi: "TNI, Pengacara",
+                            jurusan: "Hukum, Militer",
+                        },
+                        pillar: { no: "18", group: "40" },
+                        parents: [{ no: "10", group: "18" }],
+                    },
+                    {
+                        name: "Ghairah",
+                        data: {
+                            pilar40: "19",
+                            arab: "الغَيْرَة",
+                            nama: "pencemburu",
+                            nama_lengkap: "Ghairah / الغَيْرَة",
+                            definisi: "cemburu pada pelanggaran hak",
+                            lalai_arab: "الدِّيَاثَة",
+                            lalai_nama_lengkap: "Diyaatsah (permisif)",
+                            lalai_definisi: "tidak peduli kemungkaran",
+                            lebih_arab: "الحَسَد",
+                            lebih_nama_lengkap: "Hasad (iri hati)",
+                            lebih_definisi: "mengharap hilangnya nikmat orang",
+                            profesi: "Auditor, Pengawas",
+                            jurusan: "Hukum, Manajemen",
+                        },
+                        pillar: { no: "19", group: "40" },
+                        parents: [{ no: "10", group: "18" }],
+                    },
+                    {
+                        name: "Munaafasah",
+                        data: {
+                            pilar40: "20",
+                            arab: "المُنَافَسَة",
+                            nama: "kompetitif",
+                            nama_lengkap: "Munaafasah / المُنَافَسَة",
+                            definisi: "senang bersaing",
+                            lalai_arab: "الذُّلّ",
+                            lalai_nama_lengkap: "Dzull (lemah)",
+                            lalai_definisi: "takut bersaing",
+                            lebih_arab: "الظُّلْم",
+                            lebih_nama_lengkap: "Zhulm (zhalim)",
+                            lebih_definisi: "berbuat curang",
+                            profesi: "Sales, Atlet",
+                            jurusan: "Olahraga, Bisnis",
+                        },
+                        pillar: { no: "20", group: "40" },
+                        parents: [{ no: "10", group: "18" }],
+                    },
+                    {
+                        name: "Nashiihah",
+                        data: {
+                            pilar40: "21",
+                            arab: "النَّصِيْحَة",
+                            nama: "penasehat",
+                            nama_lengkap: "Nashiihah / النَّصِيْحَة",
+                            definisi: "senang menasehati",
+                            lalai_arab: "الغِشِّ",
+                            lalai_nama_lengkap: "Ghisy (menipu)",
+                            lalai_definisi: "menjerumuskan",
+                            lebih_arab: "التَّنْفِير",
+                            lebih_nama_lengkap: "Tanfiir (menakut-nakuti)",
+                            lebih_definisi: "membuat orang lari",
+                            profesi: "Konselor, Guru",
+                            jurusan: "Pendidikan, Komunikasi",
+                        },
+                        pillar: { no: "21", group: "40" },
+                        parents: [{ no: "11", group: "18" }],
+                    },
+                    {
+                        name: "Fashaahah",
+                        data: {
+                            pilar40: "22",
+                            arab: "الفَصَاحَة",
+                            nama: "komunikatif",
+                            nama_lengkap: "Fashaahah / الفَصَاحَة",
+                            definisi: "fasih berbicara",
+                            lalai_arab: "العُجْمَة",
+                            lalai_nama_lengkap: "‘Ujmah (gagap)",
+                            lalai_definisi: "kesalahan bicara",
+                            lebih_arab: "الجِدَال",
+                            lebih_nama_lengkap: "Jidaal (debat)",
+                            lebih_definisi: "berbantahan",
+                            profesi: "Humas, MC, Sales",
+                            jurusan: "Komunikasi, Hubungan Internasional",
+                        },
+                        pillar: { no: "22", group: "40" },
+                        parents: [{ no: "11", group: "18" }],
+                    },
+                    {
+                        name: "Nushrah",
+                        data: {
+                            pilar40: "23",
+                            arab: "النُّصْرَة",
+                            nama: "menolong",
+                            nama_lengkap: "Nushrah / النُّصْرَة",
+                            definisi: "senang membantu",
+                            lalai_arab: "الخِذْلَان",
+                            lalai_nama_lengkap: "Khidzlaan (menerlantarkan)",
+                            lalai_definisi: "membiarkan",
+                            lebih_arab: "الظُّلْم",
+                            lebih_nama_lengkap: "Zhulm (zhalim)",
+                            lebih_definisi: "tidak pada tempatnya",
+                            profesi: "Relawan, Polisi",
+                            jurusan: "Sosial, Hukum",
+                        },
+                        pillar: { no: "23", group: "40" },
+                        parents: [{ no: "12", group: "18" }],
+                    },
+                    {
+                        name: "Juud",
+                        data: {
+                            pilar40: "24",
+                            arab: "الجُوْد",
+                            nama: "dermawan",
+                            nama_lengkap: "Juud / الجُوْد",
+                            definisi: "senang memberi",
+                            lalai_arab: "البُخْل",
+                            lalai_nama_lengkap: "Bukhl (kikir)",
+                            lalai_definisi: "menahan harta",
+                            lebih_arab: "التَّبْذِيْر",
+                            lebih_nama_lengkap: "Tabdzir (boros)",
+                            lebih_definisi: "berlebihan",
+                            profesi: "Filantropi, Sosial",
+                            jurusan: "Sosial, Ekonomi",
+                        },
+                        pillar: { no: "24", group: "40" },
+                        parents: [{ no: "12", group: "18" }],
+                    },
+                    {
+                        name: "Ta'aawun",
+                        data: {
+                            pilar40: "25",
+                            arab: "التَّعَاوُن",
+                            nama: "bekerjaasama",
+                            nama_lengkap: "Ta’aawun / التَّعَاوُن",
+                            definisi: "kerjasama",
+                            lalai_arab: "العُدْوَان",
+                            lalai_nama_lengkap: "‘Udwaan (memusuhi)",
+                            lalai_definisi: "ketidakadilan",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull (lemah)",
+                            lebih_definisi: "tergantung orang lain",
+                            profesi: "Team Player, Manajer",
+                            jurusan: "Manajemen, Komunikasi",
+                        },
+                        pillar: { no: "25", group: "40" },
+                        parents: [{ no: "13", group: "18" }],
+                    },
+                    {
+                        name: "Ulfah",
+                        data: {
+                            pilar40: "26",
+                            arab: "الاُلْفَة",
+                            nama: "bersatu",
+                            nama_lengkap: "Ulfah / الاُلْفَة",
+                            definisi: "senang berkumpul",
+                            lalai_arab: "النَّمِيْمَة",
+                            lalai_nama_lengkap: "Namiimah (adu domba)",
+                            lalai_definisi: "merusak hubungan",
+                            lebih_arab: "التَّقْلِيْد",
+                            lebih_nama_lengkap: "Taqliid (fanatik)",
+                            lebih_definisi: "ikut-ikutan",
+                            profesi: "Community Organizer",
+                            jurusan: "Sosiologi, Dakwah",
+                        },
+                        pillar: { no: "26", group: "40" },
+                        parents: [{ no: "13", group: "18" }],
+                    },
+                    {
+                        name: "‘Adaalah",
+                        data: {
+                            pilar40: "27",
+                            arab: "العَدَالَة",
+                            nama: "adil",
+                            nama_lengkap: "‘Adaalah / العَدَالَة",
+                            definisi: "bersikap tengah-tengah",
+                            lalai_arab: "الظُّلْم",
+                            lalai_nama_lengkap: "Zhulm (zhalim)",
+                            lalai_definisi: "berat sebelah",
+                            lebih_arab: "الجَهْل",
+                            lebih_nama_lengkap: "Jahl (bodoh)",
+                            lebih_definisi: "menganggap adil padahal tidak",
+                            profesi: "Hakim, HRD",
+                            jurusan: "Hukum",
+                        },
+                        pillar: { no: "27", group: "40" },
+                        parents: [{ no: "13", group: "18" }],
+                    },
+                    {
+                        name: "Wafaa'",
+                        data: {
+                            pilar40: "28",
+                            arab: "الوَفَاء",
+                            nama: "menepati janji",
+                            nama_lengkap: "Wafaa’ / الوَفَاء",
+                            definisi: "teguh memegang janji",
+                            lalai_arab: "الغَدْر",
+                            lalai_nama_lengkap: "Ghadr (langgar janji)",
+                            lalai_definisi: "melanggar kesepakatan",
+                            lebih_arab: "التَّقْلِيْد",
+                            lebih_nama_lengkap: "Taqliid (fanatik)",
+                            lebih_definisi: "menyepakati tanpa peduli kerugian",
+                            profesi: "Administrasi, Akuntan",
+                            jurusan: "Hukum, Administrasi",
+                        },
+                        pillar: { no: "28", group: "40" },
+                        parents: [{ no: "13", group: "18" }],
+                    },
+                    {
+                        name: "Muzaah",
+                        data: {
+                            pilar40: "29",
+                            arab: "المُزَاح",
+                            nama: "humoris",
+                            nama_lengkap: "Muzaah / المُزَاح",
+                            definisi: "senang bercanda",
+                            lalai_arab: "الجَفَاء",
+                            lalai_nama_lengkap: "Jafaa’ (kaku)",
+                            lalai_definisi: "kurang akrab",
+                            lebih_arab: "الاِسْتِهْزَاء",
+                            lebih_nama_lengkap: "Istihzaa’ (mengejek)",
+                            lebih_definisi: "bermain-main",
+                            profesi: "Entertainer, MC",
+                            jurusan: "Komunikasi, Seni",
+                        },
+                        pillar: { no: "29", group: "40" },
+                        parents: [{ no: "14", group: "18" }],
+                    },
+                    {
+                        name: "Basyaasyah",
+                        data: {
+                            pilar40: "30",
+                            arab: "البَشَاشَة",
+                            nama: "berseri-seri",
+                            nama_lengkap: "Basyaasyah / البَشَاشَة",
+                            definisi: "murah senyum",
+                            lalai_arab: "العَبُوْس",
+                            lalai_nama_lengkap: "Abush (muka masam)",
+                            lalai_definisi: "wajah tidak enak",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull (lemah)",
+                            lebih_definisi: "direndahkan",
+                            profesi: "Customer Service, Guru",
+                            jurusan: "Pendidikan, Pariwisata",
+                        },
+                        pillar: { no: "30", group: "40" },
+                        parents: [{ no: "14", group: "18" }],
+                    },
+                    {
+                        name: "Rifq",
+                        data: {
+                            pilar40: "31",
+                            arab: "الرِّفْق",
+                            nama: "lemah lembut",
+                            nama_lengkap: "Rifq / الرِّفْق",
+                            definisi: "lemah lembut perkataan",
+                            lalai_arab: "العَنْفُ",
+                            lalai_nama_lengkap: "‘Anfu (kasar)",
+                            lalai_definisi: "bersikap kasar",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull (lemah)",
+                            lebih_definisi: "tidak mampu memperbaiki",
+                            profesi: "Perawat, Guru",
+                            jurusan: "Kesehatan, Pendidikan",
+                        },
+                        pillar: { no: "31", group: "40" },
+                        parents: [{ no: "15", group: "18" }],
+                    },
+                    {
+                        name: "Rahmah",
+                        data: {
+                            pilar40: "32",
+                            arab: "الرَّحْمَة",
+                            nama: "berbelas kasih",
+                            nama_lengkap: "Rahmah / الرَّحْمَة",
+                            definisi: "bersimpati",
+                            lalai_arab: "الغِلْظَة",
+                            lalai_nama_lengkap: "Ghilzhah (kasar)",
+                            lalai_definisi: "kejam",
+                            lebih_arab: "التَّقْلِيْد",
+                            lebih_nama_lengkap: "Taqliid (fanatik)",
+                            lebih_definisi: "ikut-ikutan",
+                            profesi: "Perawat, Sosial",
+                            jurusan: "Kesehatan, Sosial",
+                        },
+                        pillar: { no: "32", group: "40" },
+                        parents: [{ no: "15", group: "18" }],
+                    },
+                    {
+                        name: "Mahabbah",
+                        data: {
+                            pilar40: "33",
+                            arab: "المَحَبَّة",
+                            nama: "penuh cinta",
+                            nama_lengkap: "Mahabbah / المَحَبَّة",
+                            definisi: "kecintaan mendalam",
+                            lalai_arab: "الكَرَاهِيَة",
+                            lalai_nama_lengkap: "Karaahiyah (benci)",
+                            lalai_definisi: "tidak suka",
+                            lebih_arab: "التَّقْلِيْد",
+                            lebih_nama_lengkap: "Taqliid (fanatik)",
+                            lebih_definisi: "cinta buta",
+                            profesi: "Terapis, Guru PAUD",
+                            jurusan: "Psikologi, Pendidikan",
+                        },
+                        pillar: { no: "33", group: "40" },
+                        parents: [{ no: "16", group: "18" }],
+                    },
+                    {
+                        name: "Itsaar",
+                        data: {
+                            pilar40: "34",
+                            arab: "الاِيْثَار",
+                            nama: "melayani",
+                            nama_lengkap: "Itsaar / الاِيْثَار",
+                            definisi: "mendahulukan orang lain",
+                            lalai_arab: "البُخْل",
+                            lalai_nama_lengkap: "Bakhil",
+                            lalai_definisi: "menahan",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull (lemah)",
+                            lebih_definisi: "tidak pertahankan hak",
+                            profesi: "Relawan, Dokter",
+                            jurusan: "Kedokteran, Sosial",
+                        },
+                        pillar: { no: "34", group: "40" },
+                        parents: [{ no: "16", group: "18" }],
+                    },
+                    {
+                        name: "Kitmaanus Sirr",
+                        data: {
+                            pilar40: "35",
+                            arab: "كِتْمَانُ السِّرِّ",
+                            nama: "penjaga rahasia",
+                            nama_lengkap: "Kitmaanus Sirr / كِتْمَانُ السِّرِّ",
+                            definisi: "menjaga rahasia",
+                            lalai_arab: "إِفْشَاءُ السِّرّ",
+                            lalai_nama_lengkap: "Ifsyaa’us sirr",
+                            lalai_definisi: "bocor rahasia",
+                            lebih_arab: "البُخْل",
+                            lebih_nama_lengkap: "Bukhl",
+                            lebih_definisi: "menahan kabar",
+                            profesi: "Intelijen, Arsiparis",
+                            jurusan: "Hukum, Administrasi",
+                        },
+                        pillar: { no: "35", group: "40" },
+                        parents: [{ no: "17", group: "18" }],
+                    },
+                    {
+                        name: "Satr",
+                        data: {
+                            pilar40: "36",
+                            arab: "السَّتْر",
+                            nama: "menutup aib",
+                            nama_lengkap: "Satr / السَّتْر",
+                            definisi: "menutup aib",
+                            lalai_arab: "الغِيْبَة",
+                            lalai_nama_lengkap: "Ghiibah",
+                            lalai_definisi: "sebar aib",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull",
+                            lebih_definisi: "sembunyikan ilmu",
+                            profesi: "Sekretaris, Ajudan",
+                            jurusan: "Administrasi",
+                        },
+                        pillar: { no: "36", group: "40" },
+                        parents: [{ no: "17", group: "18" }],
+                    },
+                    {
+                        name: "Amaanah",
+                        data: {
+                            pilar40: "37",
+                            arab: "الاَمَانَة",
+                            nama: "bertanggung jawab",
+                            nama_lengkap: "Amaanah / الاَمَانَة",
+                            definisi: "menunaikan tanggung jawab",
+                            lalai_arab: "الخِيَانَة",
+                            lalai_nama_lengkap: "Khiaanah",
+                            lalai_definisi: "khianat",
+                            lebih_arab: "التَّقْلِيْد",
+                            lebih_nama_lengkap: "Taqliid",
+                            lebih_definisi: "terima tugas buta",
+                            profesi: "Bendahara, Manajer",
+                            jurusan: "Akuntansi, Bisnis",
+                        },
+                        pillar: { no: "37", group: "40" },
+                        parents: [{ no: "18", group: "18" }],
+                    },
+                    {
+                        name: "Anaah",
+                        data: {
+                            pilar40: "38",
+                            arab: "الاَنَاة",
+                            nama: "tidak tergesa",
+                            nama_lengkap: "Anaah / الاَنَاة",
+                            definisi: "tenang dan jelas",
+                            lalai_arab: "العَجَلَة",
+                            lalai_nama_lengkap: "‘ajalah (tergesa)",
+                            lalai_definisi: "ingin cepat",
+                            lebih_arab: "وَسْوَاس",
+                            lebih_nama_lengkap: "Was-was (ragu)",
+                            lebih_definisi: "ragu-ragu",
+                            profesi: "Safety, Auditor",
+                            jurusan: "Teknik, Akuntansi",
+                        },
+                        pillar: { no: "38", group: "40" },
+                        parents: [{ no: "18", group: "18" }],
+                    },
+                    {
+                        name: "Hilm",
+                        data: {
+                            pilar40: "39",
+                            arab: "الحِلْم",
+                            nama: "santun",
+                            nama_lengkap: "Hilm / الحِلْم",
+                            definisi: "menahan diri",
+                            lalai_arab: "الغَضَب",
+                            lalai_nama_lengkap: "Ghadhab (marah)",
+                            lalai_definisi: "darah mendidih",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull",
+                            lebih_definisi: "lemah",
+                            profesi: "Layanan Pelanggan",
+                            jurusan: "Komunikasi",
+                        },
+                        pillar: { no: "39", group: "40" },
+                        parents: [{ no: "18", group: "18" }],
+                    },
+                    {
+                        name: "Tawaadhu'",
+                        data: {
+                            pilar40: "40",
+                            arab: "التَّوَاضُع",
+                            nama: "rendah hati",
+                            nama_lengkap: "Tawaadhu’ / التَّوَاضُع",
+                            definisi: "tidak menampakkan kelebihan",
+                            lalai_arab: "الكِبْر",
+                            lalai_nama_lengkap: "Kibr (sombong)",
+                            lalai_definisi: "melihat diri lebih besar",
+                            lebih_arab: "الذُّلّ",
+                            lebih_nama_lengkap: "Dzull (lemah)",
+                            lebih_definisi: "tidak mampu mempertahankan hak",
+                            profesi: "Pelayan Publik, Guru",
+                            jurusan: "Sosial, Pendidikan",
+                        },
+                        pillar: { no: "40", group: "40" },
+                        parents: [{ no: "18", group: "18" }],
+                    },
+                ],
+            };
+
+            const svgMapTemplate = `
+        <svg id="main-map-svg" viewBox="0 0 2481 2406" xmlns="http://www.w3.org/2000/svg" class="max-w-full h-auto max-h-[65vh] mx-auto">
+            <rect width="2480.3" height="2405.2" fill="#ffffff" rx="20"/>
+            <!-- GROUP 2 -->
+            <rect id="map-2-1" x="112.87" y="24.042" width="963.63" height="2308.8" rx="35" fill="#f3f4f6" class="map-shape" fill-opacity="0.2"/>
+            <rect id="map-2-2" x="1403.8" y="24.042" width="963.63" height="2308.8" rx="35" fill="#f3f4f6" class="map-shape" fill-opacity="0.2"/>
+            <!-- GROUP 3 -->
+            <rect id="map-3-1" x="1145.3" y="492.49" width="189.73" height="78.416" ry="20" fill="#ddd" class="map-shape"/>
+            <rect id="map-3-2" x="1145.3" y="1273.6" width="189.73" height="78.416" ry="30" fill="#ddd" class="map-shape"/>
+            <rect id="map-3-3" x="1145.3" y="2054.7" width="189.73" height="78.416" ry="30" fill="#ddd" class="map-shape"/>
+            <!-- GROUP 6 -->
+            <rect id="map-6-1" x="840.44" y="492.49" width="189.73" height="78.416" ry="30" fill="#ddd" class="map-shape"/>
+            <rect id="map-6-2" x="840.44" y="1273.6" width="189.73" height="78.416" ry="30" fill="#ddd" class="map-shape"/>
+            <rect id="map-6-3" x="840.44" y="2054.7" width="189.73" height="78.416" ry="30" fill="#ddd" class="map-shape"/>
+            <rect id="map-6-4" x="1450.2" y="492.49" width="189.73" height="78.416" ry="30" fill="#ddd" class="map-shape"/>
+            <rect id="map-6-5" x="1450.2" y="1273.6" width="189.73" height="78.416" ry="30" fill="#ddd" class="map-shape"/>
+            <rect id="map-6-6" x="1450.2" y="2054.7" width="189.73" height="78.416" ry="30" fill="#ddd" class="map-shape"/>
+            <!-- GROUP 18 -->
+            <path id="map-18-1" d="m630.45 58.552h29.128a29.128 29.128 0 0129.128 29.128v106.95a29.128 29.128 0 01-29.128 29.128h-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-2" d="m630.45 232.13h29.128a29.128 29.128 0 0129.128 29.128v106.95a29.128 29.128 0 01-29.128 29.128h-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-3" d="m630.45 405.7h29.128a29.128 29.128 0 0129.128 29.128v106.95a29.128 29.128 0 01-29.128 29.128h-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-4" d="m630.45 926.43h29.128a29.128 29.128 0 0129.128 29.128v106.95a29.128 29.128 0 01-29.128 29.128h-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-5" d="m630.45 1100h29.128a29.128 29.128 0 0129.128 29.128v20.16a29.128 29.128 0 01-29.128 29.128h-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-6" d="m630.45 1186.8h29.128a29.128 29.128 0 0129.128 29.128v106.95a29.128 29.128 0 01-29.128 29.128h-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-7" d="m630.45 1707.5h29.128a29.128 29.128 0 0129.128 29.128v20.16a29.128 29.128 0 01-29.128 29.128h-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-8" d="m630.45 1794.3h29.128a29.128 29.128 0 0129.128 29.128v106.95a29.128 29.128 0 01-29.128 29.128h-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-9" d="m630.45 1967.9h29.128a29.128 29.128 0 0129.128 29.128v193.74a29.128 29.128 0 01-29.128 29.128h-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-10" d="m1820.7 58.552h29.128v251.99h-29.128a29.128 29.128 0 01-29.128-29.128v-193.74a29.128 29.128 0 0129.128-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-11" d="m1820.7 318.92h29.128v165.2h-29.128a29.128 29.128 0 01-29.128-29.128v-106.95a29.128 29.128 0 0129.128-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-12" d="m1820.7 492.49h29.128v165.2h-29.132a29.124 29.124 0 01-29.124-29.124v-106.95a29.128 29.128 0 0129.128-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-13" d="m1820.7 752.86h29.123v338.78h-29.128a29.128 29.128 0 01-29.128-29.128v-280.52a29.133 29.133 0 0129.133-29.133z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-14" d="m1820.7 1100h29.128v165.2h-29.128a29.128 29.128 0 01-29.128-29.128v-106.95a29.128 29.128 0 0129.128-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-15" d="m1820.7 1273.6h29.128v165.2h-29.132a29.124 29.124 0 01-29.124-29.124v-106.95a29.128 29.128 0 0129.128-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-16" d="m1820.7 1534h29.128v165.2h-29.128a29.128 29.128 0 01-29.128-29.128v-106.95a29.128 29.128 0 0129.128-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-17" d="m1820.7 1707.5h29.128v165.2h-29.128a29.128 29.128 0 01-29.128-29.128v-106.95a29.128 29.128 0 0129.128-29.128z" fill="#ddd" class="map-shape"/>
+            <path id="map-18-18" d="m1820.7 1881.1h29.128v338.78h-29.128a29.128 29.128 0 01-29.128-29.128v-280.52a29.128 29.128 0 0129.128-29.128z" fill="#ddd" class="map-shape"/>
+            <!-- GROUP 40 -->
+            <rect id="map-40-1" x="420.46" y="58.552" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-2" x="420.46" y="145.34" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-3" x="420.46" y="232.13" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-4" x="420.46" y="318.92" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-5" x="420.46" y="405.7" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-6" x="420.46" y="492.49" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-7" x="420.46" y="926.43" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-8" x="420.46" y="1013.2" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-9" x="420.46" y="1100" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-10" x="420.46" y="1186.8" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-11" x="420.46" y="1273.6" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-12" x="420.46" y="1707.5" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-13" x="420.46" y="1794.3" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-14" x="420.46" y="1881.1" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-15" x="420.46" y="1967.9" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-16" x="420.46" y="2054.7" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-17" x="420.46" y="2141.5" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-18" x="1870.1" y="58.552" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-19" x="1870.1" y="145.34" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-20" x="1870.1" y="232.13" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-21" x="1870.1" y="318.92" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-22" x="1870.1" y="405.7" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-23" x="1870.1" y="492.49" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-24" x="1870.1" y="579.28" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-25" x="1870.1" y="752.86" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-26" x="1870.1" y="839.65" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-27" x="1870.1" y="926.43" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-28" x="1870.1" y="1013.2" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-29" x="1870.1" y="1100" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-30" x="1870.1" y="1186.8" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-31" x="1870.1" y="1273.6" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-32" x="1870.1" y="1360.4" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-33" x="1870.1" y="1534" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-34" x="1870.1" y="1620.7" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-35" x="1870.1" y="1707.5" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-36" x="1870.1" y="1794.3" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-37" x="1870.1" y="1881.1" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-38" x="1870.1" y="1967.9" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-39" x="1870.1" y="2054.7" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <rect id="map-40-40" x="1870.1" y="2141.5" width="189.73" height="78.416" fill="#ddd" class="map-shape"/>
+            <!-- LINES -->
+            <g fill="none" stroke="#838fc4" stroke-width="6.75px" opacity="0.5">
+                <path d="m1660.1 531.7c96.381 0 1.127-347.15 115.12-347.15"/>
+                <path d="m820.18 531.7c-96.381 0-1.127-390.55-115.12-390.55"/>
+                <path d="m820.18 1312.8c-96.381 0-1.127-303.76-115.12-303.76"/>
+                <path d="m820.18 1312.8c-94.782 0-1.127-173.58-115.12-173.58"/>
+                <path d="m820.18 1312.8c-52.396 0-1.127-43.394-115.12-43.394"/>
+                <path d="m820.18 2093.9c-96.381 0-1.127-347.15-115.12-347.15"/>
+                <path d="m820.18 2093.9c-90.751 0-1.127-216.97-115.12-216.97"/>
+                <path d="m820.18 2093.9h-115.12"/>
+                <path d="m820.18 531.7c-61.986 0-1.127-43.394-115.12-43.394"/>
+                <path d="m820.18 531.7c-94.334 0-1.127-216.97-115.12-216.97"/>
+                <path d="m1660.1 1312.8c96.381 0 1.127-390.55 115.12-390.55"/>
+                <path d="m1660.1 2093.9c96.381 0 1.127-477.33 115.12-477.33"/>
+                <path d="m1660.1 2093.9c96.381 0 1.127-43.394 115.12-43.394"/>
+                <path d="m1660.1 2093.9c94.87 0 1.127-303.76 115.12-303.76"/>
+                <path d="m1660.1 1312.8c81.026 0 1.127-130.18 115.12-130.18"/>
+                <path d="m1660.1 1312.8c96.381 0 1.127 43.394 115.12 43.394"/>
+                <path d="m1660.1 531.7c82.37 0 1.127-130.18 115.12-130.18"/>
+                <path d="m1660.1 531.7c96.381 0 1.127 43.394 115.12 43.394"/>
+            </g>
+
+            <!-- LABELS -->
+            <g class="map-text" font-family="'Arabic Typesetting'" font-size="53.333px" text-anchor="middle" direction="rtl">
+                <text x="1238.7888" y="397.33014">الهَوَى</text>
+                <text x="1238.88" y="1182.9497">العَقْل</text>
+                <text x="1238.9451" y="1964.6289">الخِدْمَة</text>
+            </g>
+            <g class="map-text" font-family="'Arabic Typesetting'" font-size="53.333px" text-anchor="middle">
+                <text x="594.07471" y="2297.156">Introvert</text>
+                <text x="1885.2305" y="2297.156">Extrovert</text>
+            </g>
+            <g class="map-text" font-family="'Arabic Typesetting'" font-size="42.667px" text-anchor="middle">
+                <text x="1238.7888" y="455.33014">KARSA</text>
+                <text x="1238.88" y="1240.9497">CIPTA</text>
+                <text x="1238.9451" y="2022.6289">RASA</text>
+            </g>
+            <g class="map-text" font-family="'Arabic Typesetting'" font-size="42.667px" text-anchor="middle">
+                <text x="931.29" y="460.81">BEKERJA KERAS</text>
+                <text x="941.99" y="1240.87">BERPIKIR</text>
+                <text x="935.87" y="2022.66">BERPERASAAN</text>
+                <text x="1545.02" y="460.69">MEMPENGARUHI</text>
+                <text x="1543.74" y="1239.58">BEKERJASAMA</text>
+                <text x="1543.80" y="2022.62">MELAYANI</text>
+            </g>
+            <g class="map-text" font-family="'Arabic Typesetting'" font-size="42.667px" text-anchor="end">
+                <text x="390.69" y="384.19">Berwibawa</text>
+                <text x="391.78" y="209.51">Perfeksionis</text>
+                <text x="390.71" y="471.17">Bertekad Kuat</text> <!-- Fixed spacing -->
+                <text x="391.14" y="565.28">Bersemangat</text>
+                <text x="388.89" y="121.92">Cita-Cita Tinggi</text>
+                <text x="389.11" y="296.35">Harga Diri</text>
+                <text x="389.28" y="1261.18">Cerdas</text>
+                <text x="389.85" y="1341.99">Ahli Hikmah</text>
+                <text x="389.08" y="1079.96">Cerdik</text>
+                <text x="390.66" y="991.10">Berfirasat</text>
+                <text x="393.97" y="1167.32">Husnuzhan</text>
+                <text x="389.29" y="2034.37">Pemalu</text>
+                <text x="390.78" y="1949.44">Pendiam</text>
+
+                <text x="390.45" y="1772.48">Jujur</text>
+                <text x="388.83" y="1863.42">Menjaga Diri</text>
+
+                <text x="389.92" y="2124.42">Sederhana</text>
+                <text x="391.17" y="2202.27">Penyabar</text>
+            </g>
+            <g class="map-text" font-family="'Arabic Typesetting'" font-size="42.667px" text-anchor="start">
+                <text x="2073.77" y="306.14">Kompetitif</text>
+                <text x="2073.34" y="127.08">Pemberani</text>
+                <text x="2075.60" y="644.54">Dermawan</text>
+                <text x="2075.06" y="558.35">Menolong</text>
+                <text x="2073.52" y="469.74">Komunikatif</text>
+                <text x="2073.46" y="384.54">Penasehat</text>
+                <text x="2075.99" y="212.36">Pencemburu</text>
+                <text x="2073.42" y="1250.51">Berseri-seri</text>
+                <text x="2075.44" y="1338.76">Lemah Lembut</text>
+                <text x="2075.44" y="1076.47">Tepat Janji</text>
+                <text x="2074.15" y="817.76">Bekerjasama</text>
+                <text x="2075.65" y="911.18">Bersatu</text>
+                <text x="2075.20" y="1428.29">Berbelas Kasih</text>
+                <text x="2074.95" y="995.38">Adil</text>
+                <text x="2075.38" y="1171.92">Humoris</text>
+                <text x="2075.04" y="1952.10">Amanah</text>
+                <text x="2076.22" y="2038.88">Tidak Tergesa</text>
+                <text x="2076.20" y="1860.67">Menutup Aib</text>
+                <text x="2075.61" y="2118.71">Santun</text>
+                <text x="2067.37" y="1772.49">Jaga Rahasia</text>
+                <text x="2075.88" y="1685.69">Melayani</text>
+                <text x="2076.21" y="2207.49">Rendah Hati</text>
+                <text x="2075.17" y="1599.40">Penuh Cinta</text>
+            </g>
+        </svg>`;
+
+            // --- CORE LOGIC ---
+            let allItems = [];
+
+            function init() {
+                Object.keys(rawData).forEach((key) => {
+                    rawData[key].forEach((item) => {
+                        item.groupId = key;
+                        allItems.push(item);
+                    });
+                });
+                initTheme();
+                renderFilters();
+                renderContent();
+
+                const mapContainer = document.getElementById("map-container");
+                if (mapContainer) {
+                    mapContainer.innerHTML = svgMapTemplate;
+                    setTimeout(colorMap, 50);
+                }
+            }
+
+            function findItem(group, no) {
+                if (!rawData[group]) return null;
+                return rawData[group].find(
+                    (i) => i.pillar && i.pillar.no === no,
+                );
+            }
+
+            function getLineageColor(item) {
+                let queue = [item];
+                let visited = new Set();
+                while (queue.length > 0) {
+                    let curr = queue.shift();
+                    const uid =
+                        curr.groupId +
+                        "-" +
+                        (curr.pillar ? curr.pillar.no : "x");
+                    if (visited.has(uid)) continue;
+                    visited.add(uid);
+                    if (curr.groupId === "3") {
+                        if (curr.pillar.no === "1") return "red";
+                        if (curr.pillar.no === "2") return "yellow";
+                        if (curr.pillar.no === "3") return "green";
+                    }
+                    if (curr.parents && curr.parents.length > 0) {
+                        curr.parents.forEach((p) => {
+                            if (p.group === "2") return;
+                            const parentItem = findItem(p.group, p.no);
+                            if (parentItem) queue.push(parentItem);
+                        });
+                    }
+                }
+                return "gray";
+            }
+
+            function getPolarity(item) {
+                let queue = [item];
+                let visited = new Set();
+                while (queue.length > 0) {
+                    let curr = queue.shift();
+                    const uid =
+                        curr.groupId +
+                        "-" +
+                        (curr.pillar ? curr.pillar.no : "x");
+                    if (visited.has(uid)) continue;
+                    visited.add(uid);
+
+                    if (curr.groupId === "2") {
+                        if (curr.pillar.no === "1") return "Introvert";
+                        if (curr.pillar.no === "2") return "Extrovert";
+                    }
+
+                    if (curr.parents && curr.parents.length > 0) {
+                        curr.parents.forEach((p) => {
+                            const parentItem = findItem(p.group, p.no);
+                            if (parentItem) queue.push(parentItem);
+                        });
+                    }
+                }
+                return null;
+            }
+
+            function getCardStyles(color) {
+                switch (color) {
+                    case "red":
+                        return {
+                            border: "border-l-4 border-l-red-500",
+                            badge: "badge-error text-white",
+                            text: "text-red-600",
+                            hex: "#f87171",
+                            name: "Karsa",
+                        };
+                    case "yellow":
+                        return {
+                            border: "border-l-4 border-l-yellow-500",
+                            badge: "badge-warning text-black",
+                            text: "text-yellow-600",
+                            hex: "#facc15",
+                            name: "Cipta",
+                        };
+                    case "green":
+                        return {
+                            border: "border-l-4 border-l-green-500",
+                            badge: "badge-success text-white",
+                            text: "text-green-600",
+                            hex: "#4ade80",
+                            name: "Rasa",
+                        };
+                    default:
+                        return {
+                            border: "border-l-4 border-l-base-300",
+                            badge: "badge-ghost",
+                            text: "text-base-content",
+                            hex: "#d1d5db",
+                            name: "Umum",
+                        };
+                }
+            }
+
+            function colorMap() {
+                allItems.forEach((item) => {
+                    const mapId = `map-${item.groupId}-${item.pillar.no}`;
+                    const el = document.getElementById(mapId);
+                    if (el) {
+                        const colorCode = getLineageColor(item);
+                        const styles = getCardStyles(colorCode);
+                        if (item.groupId === "2") {
+                            el.setAttribute(
+                                "fill",
+                                item.pillar.no === "1" ? "#9333ea" : "#06b6d4",
+                            );
+                            el.setAttribute("fill-opacity", "0.2");
+                        } else {
+                            el.setAttribute("fill", styles.hex);
+                        }
+                        el.onclick = () => openDetail(item);
+                    }
+                });
+            }
+
+            function renderFilters() {
+                const container = document.getElementById("category-filters");
+                let html = `<button class="btn btn-sm ${currentCategory === "all" ? "btn-primary" : "btn-outline"} category-btn" onclick="filterCategory('all')">Semua</button>`;
+                Object.keys(rawData).forEach((cat) => {
+                    const label =
+                        cat === "40"
+                            ? "40 Pilar"
+                            : cat === "2"
+                              ? "Int/Ext"
+                              : `Kelompok ${cat}`;
+                    html += `<button class="btn btn-sm ${currentCategory === cat ? "btn-primary" : "btn-outline"} category-btn" onclick="filterCategory('${cat}')">${label}</button>`;
+                });
+                container.innerHTML = html;
+            }
+
+            function renderContent() {
+                const grid = document.getElementById("content-grid");
+                const tbody = document.getElementById("table-body");
+                const empty = document.getElementById("empty-state");
+                grid.innerHTML = "";
+                tbody.innerHTML = "";
+
+                const filtered = allItems.filter((item) => {
+                    const q = searchQuery.toLowerCase();
+                    const matchSearch =
+                        item.name.toLowerCase().includes(q) ||
+                        (item.data.definisi || "").toLowerCase().includes(q);
+                    return (
+                        (currentCategory === "all" ||
+                            item.groupId === currentCategory) &&
+                        matchSearch
+                    );
+                });
+
+                if (filtered.length === 0) {
+                    empty.classList.remove("hidden");
+                    return;
+                }
+                empty.classList.add("hidden");
+
+                filtered.forEach((item) => {
+                    const color = getLineageColor(item);
+                    const style = getCardStyles(color);
+                    const polarity = getPolarity(item);
+
+                    let badges = `<span class="badge ${style.badge} badge-xs font-bold uppercase tracking-wider">${style.name}</span>`;
+                    if (polarity) {
+                        const polColor =
+                            polarity === "Introvert"
+                                ? "bg-purple-100 text-purple-700 border-purple-200"
+                                : "bg-cyan-100 text-cyan-700 border-cyan-200";
+                        badges += `<span class="badge ${polColor} badge-xs font-bold uppercase tracking-wider ml-1">${polarity}</span>`;
+                    }
+
+                    // Grid Card
+                    const card = document.createElement("div");
+                    card.className = `card bg-base-100 shadow-sm hover:shadow-lg transition-all border border-base-200 cursor-pointer ${style.border}`;
+                    card.onclick = () => openDetail(item);
+                    card.innerHTML = `
+                    <div class="card-body p-4">
+                        <h3 class="font-bold text-lg">${item.name}</h3>
+                        ${item.data.arab ? `<p class="font-arab text-xl text-right ${style.text}">${item.data.arab}</p>` : ""}
+                        <p class="text-sm opacity-70 line-clamp-2 mt-1">${item.data.definisi || "-"}</p>
+                        <div class="mt-3 flex flex-wrap gap-1">${badges}</div>
+                    </div>
+                `;
+                    grid.appendChild(card);
+
+                    // Table Row
+                    const tr = document.createElement("tr");
+                    tr.onclick = () => openDetail(item);
+                    tr.innerHTML = `
+                    <td class="font-bold">${item.name}</td>
+                    <td class="font-arab text-lg">${item.data.arab || "-"}</td>
+                    <td><span class="badge ${style.badge} badge-sm">${style.name}</span></td>
+                    <td>${polarity ? `<span class="badge badge-sm badge-outline">${polarity}</span>` : "-"}</td>
+                    <td>${item.data.definisi || "-"}</td>
+                    <td><span class="badge badge-ghost badge-sm">Group ${item.groupId}</span></td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            let currentCategory = "all";
+            let searchQuery = "";
+            function filterCategory(c) {
+                currentCategory = c;
+                renderFilters();
+                renderContent();
+            }
+            function handleSearch() {
+                searchQuery = document.getElementById("search-input").value;
+                renderContent();
+            }
+            function switchView(v) {
+                document
+                    .getElementById("view-exploration")
+                    .classList.toggle("hidden", v !== "exploration");
+                document
+                    .getElementById("view-table")
+                    .classList.toggle("hidden", v !== "table");
+                document
+                    .getElementById("tab-exploration")
+                    .classList.toggle("tab-active", v === "exploration");
+                document
+                    .getElementById("tab-table")
+                    .classList.toggle("tab-active", v === "table");
+            }
+
+            // --- MODAL LOGIC (UPDATED) ---
+            function openDetail(item) {
+                const modal = document.getElementById("detail_modal");
+                const content = document.getElementById("modal-content");
+                const d = item.data;
+
+                // --- CALCULATE BADGES FOR MODAL ---
+                const lineageColor = getLineageColor(item);
+                const styles = getCardStyles(lineageColor);
+                const lineageName =
+                    lineageColor !== "gray"
+                        ? "Jalur " +
+                          (lineageColor === "red"
+                              ? "Karsa"
+                              : lineageColor === "yellow"
+                                ? "Cipta"
+                                : "Rasa")
+                        : "Umum";
+
+                const polarity = getPolarity(item);
+                let polarityBadge = "";
+                // Check case-insensitive to match data
+                if (polarity === "Introvert" || polarity === "introvert") {
+                    polarityBadge = `<span class="badge bg-purple-600 text-white border-none badge-md font-bold uppercase tracking-wide ml-1">Introvert</span>`;
+                } else if (
+                    polarity === "Extrovert" ||
+                    polarity === "extrovert"
+                ) {
+                    polarityBadge = `<span class="badge badge-info text-white badge-md font-bold uppercase tracking-wide ml-1">Extrovert</span>`;
+                }
+
+                let extraContent = "";
+
+                // Logic for Group 3 (Gaya Belajar)
+                if (item.groupId === "3") {
+                    extraContent += `
+                    <div class="divider text-primary font-bold mt-6">Gaya Belajar & Hati</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-base-200 p-5 rounded-box border-l-4 border-primary">
+                            <h4 class="font-bold text-sm uppercase text-primary mb-2 flex items-center gap-2"><i class="fa-solid fa-book-open"></i> Gaya Belajar</h4>
+                            <p class="font-arab text-xl mb-1">${d.gaya_belajar_arab || ""}</p>
+                            <p class="font-bold text-lg">${d.gaya_belajar || "-"}</p>
+                            <p class="text-sm mt-2 opacity-80 leading-relaxed">${d.gaya_belajar_definisi || ""}</p>
+                        </div>
+                        <div class="bg-base-200 p-5 rounded-box border-l-4 border-secondary">
+                            <h4 class="font-bold text-sm uppercase text-secondary mb-2 flex items-center gap-2"><i class="fa-solid fa-heart"></i> Bahasa Hati</h4>
+                            <p class="font-bold text-lg">${d.bahasa_hati || "-"}</p>
+                            <p class="text-sm mt-2 opacity-80 leading-relaxed">${d.bahasa_hati_definisi || ""}</p>
+                        </div>
+                    </div>
+                `;
+                }
+
+                // Logic for Group 40 (Detailed Remediation)
+                if (item.groupId === "40") {
+                    extraContent += `
+                    <div class="divider text-error font-bold mt-8"><i class="fa-solid fa-triangle-exclamation"></i> Diagnosa Ekstrem</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="border border-error/20 bg-error/5 p-5 rounded-box">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="badge badge-error badge-sm">Lalai/Meremehkan</span>
+                            </div>
+                            <div class="font-arab text-2xl mb-1">${d.lalai_arab || ""}</div>
+                            <div class="font-bold text-lg">${d.lalai_nama_lengkap || "-"}</div>
+                            <p class="text-sm mt-2 mb-3 italic opacity-80">"${d.lalai_definisi || "-"}"</p>
+                            <div class="alert alert-sm bg-base-100 shadow-sm text-sm">
+                                <span><strong>Solusi:</strong> ${d.lalai_perbaiki || "Kuatkan bakat ini dan penyeimbangnya."}</span>
+                            </div>
+                        </div>
+                        <div class="border border-warning/20 bg-warning/5 p-5 rounded-box">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="badge badge-warning badge-sm text-warning-content">Berlebihan</span>
+                            </div>
+                            <div class="font-arab text-2xl mb-1">${d.lebih_arab || ""}</div>
+                            <div class="font-bold text-lg">${d.lebih_nama_lengkap || "-"}</div>
+                            <p class="text-sm mt-2 mb-3 italic opacity-80">"${d.lebih_definisi || "-"}"</p>
+                            <div class="alert alert-sm bg-base-100 shadow-sm text-sm">
+                                <span><strong>Solusi:</strong> ${d.lebih_perbaiki || "Kuatkan sifat Tawadhu dan Qanaah."}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="divider text-success font-bold mt-6"><i class="fa-solid fa-briefcase"></i> Potensi Karir</div>
+                    <div class="bg-base-200 p-5 rounded-box border-l-4 border-success">
+                        <p class="text-sm mb-3"><span class="font-bold block text-success mb-1">Profesi:</span> ${d.profesi || "-"}</p>
+                        <p class="text-sm"><span class="font-bold block text-success mb-1">Jurusan Studi:</span> ${d.jurusan || "-"}</p>
+                    </div>
+                `;
+                }
+
+                // --- FAMILY TREE GENERATION ---
+
+                // 1. GENERATE PARENTS LINKS
+                let parentLinksHtml = "";
+                if (item.parents && item.parents.length > 0) {
+                    item.parents.forEach((p) => {
+                        if (!p.group || !p.no) return; // Skip invalid or null parents
+                        const parentItem = findItem(p.group, p.no);
+                        if (parentItem) {
+                            const pStr = JSON.stringify(parentItem).replace(
+                                /'/g,
+                                "&#39;",
+                            );
+                            parentLinksHtml += `
+                            <button class="btn btn-sm btn-outline btn-neutral" onclick='openDetail(${pStr})'>
+                                <i class="fa-solid fa-arrow-up"></i> ${parentItem.name}
+                            </button>
+                         `;
+                        }
+                    });
+                }
+                if (!parentLinksHtml)
+                    parentLinksHtml =
+                        '<span class="text-xs opacity-50 italic">Tidak ada data orang tua (Root)</span>';
+
+                // 2. GENERATE CHILDREN LINKS (Reverse Lookup)
+                const currentPillarNo = item.pillar
+                    ? item.pillar.no
+                    : item.data.pilar40 || null;
+                let childrenLinksHtml = "";
+
+                if (currentPillarNo) {
+                    const children = allItems.filter((candidate) => {
+                        if (!candidate.parents) return false;
+                        return candidate.parents.some(
+                            (p) =>
+                                p.group === item.groupId &&
+                                p.no === currentPillarNo,
+                        );
+                    });
+
+                    if (children.length > 0) {
+                        children.forEach((child) => {
+                            const cStr = JSON.stringify(child).replace(
+                                /'/g,
+                                "&#39;",
+                            );
+                            childrenLinksHtml += `
+                            <button class="btn btn-sm btn-outline btn-accent" onclick='openDetail(${cStr})'>
+                                <i class="fa-solid fa-arrow-down"></i> ${child.name}
+                            </button>
+                        `;
+                        });
+                    }
+                }
+                if (!childrenLinksHtml)
+                    childrenLinksHtml =
+                        '<span class="text-xs opacity-50 italic">Tidak memiliki turunan langsung (Leaf)</span>';
+
+                // 3. GENERATE SIBLINGS (Same Group)
+                const siblings = allItems
+                    .filter((i) => i.groupId === item.groupId)
+                    .sort((a, b) => {
+                        const pA = parseInt(
+                            a.pillar ? a.pillar.no : a.data.pilar40 || 0,
+                        );
+                        const pB = parseInt(
+                            b.pillar ? b.pillar.no : b.data.pilar40 || 0,
+                        );
+                        return pA - pB;
+                    });
+                let siblingHtml = "";
+                siblings.forEach((sib) => {
+                    const isActive = sib.name === item.name;
+                    const sibStr = JSON.stringify(sib).replace(/'/g, "&#39;");
+                    const btnClass = isActive
+                        ? "btn-primary no-animation"
+                        : "btn-ghost";
+                    const opacity = isActive ? "" : "opacity-70";
+
+                    siblingHtml += `
+                    <button class="btn btn-xs sm:btn-sm ${btnClass} ${opacity} font-normal" ${isActive ? "disabled" : `onclick='openDetail(${sibStr})'`}>
+                        ${sib.name}
+                    </button>
+                `;
+                });
+
+                const childPillar = item.pillar
+                    ? item.pillar.no
+                    : item.data.pilar40 || "?";
+
+                content.innerHTML = `
+                <div class="text-center mb-8 mt-6">
+                    <h2 class="text-4xl font-bold text-primary mb-2">${d.nama_lengkap || item.name}</h2>
+                    ${item.groupId === "40" ? `<h3 class="text-xl font-bold opacity-75 mb-2">${d.nama || ""}</h3>` : ""}
+
+                    <!-- LINEAGE BADGES IN POPUP -->
+                    <div class="flex flex-wrap gap-2 justify-center mb-4">
+                         <span class="badge ${styles.badge} badge-md font-bold uppercase tracking-wide opacity-90">${lineageName}</span>
+                         ${polarityBadge}
+                    </div>
+
+                    ${d.arab ? `<h3 class="text-5xl font-arab my-4 text-secondary leading-normal">${d.arab}</h3>` : ""}
+                    <p class="text-xl font-medium opacity-80 italic">${d.arti || d.definisi || ""}</p>
+                </div>
+
+                <div class="bg-base-200/50 p-6 rounded-box mb-4 border border-base-200">
+                    <h4 class="font-bold text-sm uppercase opacity-50 mb-2 tracking-wide">Definisi Lengkap</h4>
+                    <p class="text-lg leading-relaxed">${d.definisi || d.uraian || "Tidak ada deskripsi detail."}</p>
+                </div>
+
+                ${extraContent}
+
+                <div class="divider"></div>
+
+                <!-- Struktur Keluarga Bakat -->
+                <div class="bg-base-300 p-6 rounded-box mt-4">
+                   <div class="flex items-center gap-2 mb-6">
+                       <i class="fa-solid fa-sitemap text-primary text-xl"></i>
+                       <span class="text-lg font-bold uppercase tracking-widest">Struktur Keluarga Bakat</span>
+                   </div>
+
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Parents Section -->
+                        <div class="bg-base-100/50 p-4 rounded-lg">
+                            <div class="text-xs uppercase font-bold opacity-50 mb-3 flex items-center gap-1">
+                                <i class="fa-solid fa-level-up-alt"></i> Orang Tua (Induk)
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                ${parentLinksHtml}
+                            </div>
+                        </div>
+
+                        <!-- Children Section -->
+                        <div class="bg-base-100/50 p-4 rounded-lg">
+                            <div class="text-xs uppercase font-bold opacity-50 mb-3 flex items-center gap-1">
+                                <i class="fa-solid fa-level-down-alt"></i> Anak Bakat (Turunan)
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                ${childrenLinksHtml}
+                            </div>
+                        </div>
+                   </div>
+
+                   <!-- Siblings/Group Section -->
+                   <div>
+                        <div class="text-xs uppercase font-bold opacity-50 mb-2">Anggota Kelompok Lainnya (Saudara Selevel)</div>
+                        <div class="flex flex-wrap gap-2">
+                            ${siblingHtml}
+                        </div>
+                   </div>
+
+                   <div class="mt-4 pt-4 border-t border-base-content/10 flex justify-between items-center opacity-60 text-xs">
+                        <span>Kelompok ${item.groupId}</span>
+                        <span>Pilar ke-${childPillar}</span>
+                   </div>
+                </div>
+            `;
+                modal.showModal();
+            }
+
+            // --- UTILS & THEME ---
+            function copyTableData() {
+                const t = document.getElementById("data-table-el");
+                const txt = Array.from(t.rows)
+                    .map((row) =>
+                        Array.from(row.cells)
+                            .map((c) => c.innerText)
+                            .join("\t"),
+                    )
+                    .join("\n");
+                navigator.clipboard.writeText(txt).then(() => {
+                    const toast = document.createElement("div");
+                    toast.className = "alert alert-success shadow-lg";
+                    toast.innerHTML = "<span>Data disalin!</span>";
+                    document
+                        .getElementById("toast-container")
+                        .appendChild(toast);
+                    setTimeout(() => toast.remove(), 2000);
+                });
+            }
+            function initTheme() {
+                const t =
+                    localStorage.getItem("theme") ||
+                    (window.matchMedia("(prefers-color-scheme: dark)").matches
+                        ? "dracula"
+                        : "cupcake");
+                document.documentElement.setAttribute("data-theme", t);
+                document.getElementById("theme-toggle").checked =
+                    t === "dracula";
+            }
+            document
+                .getElementById("theme-toggle")
+                .addEventListener("change", (e) => {
+                    const t = e.target.checked ? "dracula" : "cupcake";
+                    document.documentElement.setAttribute("data-theme", t);
+                    localStorage.setItem("theme", t);
+                });
+
+            init();
+        </script>
+    </body>
+</html>
